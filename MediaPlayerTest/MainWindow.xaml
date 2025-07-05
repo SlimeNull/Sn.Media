@@ -8,7 +8,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <mwpf:FramePlayer x:Name="framePlayer"/>
+        <mwpf:FramePlayer x:Name="framePlayer"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center"/>
         <Border Background="White"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"

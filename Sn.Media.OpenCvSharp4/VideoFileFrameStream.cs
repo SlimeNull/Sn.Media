@@ -30,9 +30,9 @@ namespace Sn.Media.OpenCvSharp4
             throw new InvalidOperationException();
         }
 
-        public VideoFileFrameStream(string filePath)
+        public VideoFileFrameStream(string filePath, VideoCaptureAPIs apiPreference)
         {
-            _videoCapture = new VideoCapture(filePath);
+            _videoCapture = new VideoCapture(filePath, apiPreference);
             _buffer = new Mat();
             if (!_videoCapture.Read(_buffer))
             {
@@ -68,6 +68,9 @@ namespace Sn.Media.OpenCvSharp4
             FrameStride = FrameWidth * pixelBytes;
             FrameDataSize = FrameStride * _buffer.Rows;
         }
+
+        public VideoFileFrameStream(string filePath) : this(filePath, VideoCaptureAPIs.ANY)
+        { }
 
         public unsafe bool ReadFrame(byte[] buffer, int offset, int count)
         {

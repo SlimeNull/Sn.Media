@@ -40,6 +40,14 @@ namespace Sn.Media.WPF
             set { SetValue(PositionProperty, value); }
         }
 
+        public Stretch Stretch
+        {
+            get { return (Stretch)GetValue(StretchProperty); }
+            set { SetValue(StretchProperty, value); }
+        }
+
+
+
         [MemberNotNull(nameof(_frameDataBuffer))]
         [MemberNotNull(nameof(_frameImageBuffer))]
         private void EnsureFrameBuffer(IFrameStream frameStream)
@@ -67,6 +75,7 @@ namespace Sn.Media.WPF
             }
         }
 
+        [MemberNotNull(nameof(_frameImageBuffer))]
         private unsafe void ReadAndFillFrameImage(DrawingContext drawingContext, IFrameStream frameStream)
         {
             EnsureFrameBuffer(frameStream);
@@ -92,9 +101,23 @@ namespace Sn.Media.WPF
             _frameImageBuffer.Unlock();
         }
 
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var requiredSize = default(Size);
+            if (Source is { } source)
+            {
+                requiredSize = new Size(
+                    Math.Min(availableSize.Width, source.FrameWidth),
+                    Math.Min(availableSize.Height, source.FrameHeight));
+            }
+
+            return requiredSize;
+        }
+
         protected override void OnRender(DrawingContext drawingContext)
         {
             var source = Source;
+            var stretch = Stretch;
             var position = Position;
             var isPlaying = IsPlaying;
 
@@ -116,20 +139,70 @@ namespace Sn.Media.WPF
                 ReadAndFillFrameImage(drawingContext, source);
             }
 
-            // TODO: 对帧绘制进行布局
-            drawingContext.DrawImage(_frameImageBuffer, new Rect(default, RenderSize));
+            if (_frameImageBuffer is not null)
+            {
+                if (stretch == Stretch.None)
+                {
+                    drawingContext.DrawImage(_frameImageBuffer, new Rect(0, 0, _frameImageBuffer.Width, _frameImageBuffer.Height));
+                }
+                else if (stretch == Stretch.Fill)
+                {
+                    drawingContext.DrawImage(_frameImageBuffer, new Rect(default, RenderSize));
+                }
+                else if (stretch == Stretch.Uniform)
+                {
+                    var aspectRatio = (double)_frameImageBuffer.PixelWidth / _frameImageBuffer.PixelHeight;
+                    var renderAspectRatio = RenderSize.Width / RenderSize.Height;
+                    double width, height;
+                    if (aspectRatio > renderAspectRatio)
+                    {
+                        width = RenderSize.Width;
+                        height = RenderSize.Width / aspectRatio;
+                    }
+                    else
+                    {
+                        width = RenderSize.Height * aspectRatio;
+                        height = RenderSize.Height;
+                    }
+
+                    drawingContext.DrawImage(_frameImageBuffer, new Rect((RenderSize.Width - width) / 2, (RenderSize.Height - height) / 2, width, height));
+                }
+                else if (stretch == Stretch.UniformToFill)
+                {
+                    var aspectRatio = (double)_frameImageBuffer.PixelWidth / _frameImageBuffer.PixelHeight;
+                    var renderAspectRatio = RenderSize.Width / RenderSize.Height;
+                    double width, height;
+                    if (aspectRatio > renderAspectRatio)
+                    {
+                        width = RenderSize.Height * aspectRatio;
+                        height = RenderSize.Height;
+                    }
+                    else
+                    {
+                        width = RenderSize.Width;
+                        height = RenderSize.Width / aspectRatio;
+                    }
+
+                    drawingContext.DrawImage(_frameImageBuffer, new Rect((RenderSize.Width - width) / 2, (RenderSize.Height - height) / 2, width, height));
+                }
+            }
         }
 
         public static readonly DependencyProperty PositionProperty =
-            DependencyProperty.Register("Position", typeof(TimeSpan), typeof(FramePlayer), new FrameworkPropertyMetadata(default(TimeSpan), FrameworkPropertyMetadataOptions.AffectsRender, propertyChangedCallback: OnPositionChanged));
-
+            DependencyProperty.Register("Position", typeof(TimeSpan), typeof(FramePlayer),
+                new FrameworkPropertyMetadata(default(TimeSpan), FrameworkPropertyMetadataOptions.AffectsRender, propertyChangedCallback: OnPositionChanged));
 
         public static readonly DependencyProperty SourceProperty =
-            DependencyProperty.Register("Source", typeof(IFrameStream), typeof(FramePlayer), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender), ValidateSource);
+            DependencyProperty.Register("Source", typeof(IFrameStream), typeof(FramePlayer),
+                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender), ValidateSource);
 
         public static readonly DependencyProperty IsPlayingProperty =
-            DependencyProperty.Register("IsPlaying", typeof(bool), typeof(FramePlayer), new FrameworkPropertyMetadata(false, propertyChangedCallback: OnIsPlayingChanged));
+            DependencyProperty.Register("IsPlaying", typeof(bool), typeof(FramePlayer),
+                new FrameworkPropertyMetadata(false, propertyChangedCallback: OnIsPlayingChanged));
 
+        public static readonly DependencyProperty StretchProperty =
+            DependencyProperty.Register("Stretch", typeof(Stretch), typeof(FramePlayer),
+                new FrameworkPropertyMetadata(Stretch.Uniform, FrameworkPropertyMetadataOptions.AffectsRender));
 
         private void CompositionTarget_Rendering(object? sender, EventArgs e)
         {
