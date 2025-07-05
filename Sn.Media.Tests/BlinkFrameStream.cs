@@ -35,7 +35,7 @@ namespace Sn.Media.Tests
         {
             _currentPosition = position;
         }
-        public int ReadFrame(byte[] buffer, int offset, int count)
+        public bool ReadFrame(byte[] buffer, int offset, int count)
         {
             // Calculate the time in the current frame cycle
             double totalSeconds = ((double)_currentPosition / FrameRate.Numerator) * FrameRate.Denominator;
@@ -65,7 +65,8 @@ namespace Sn.Media.Tests
                 }
             }
             _currentPosition++;
-            return FrameDataSize; // Return the number of bytes written
+
+            return true;
         }
         private ColorBgra LerpColor(ColorBgra from, ColorBgra to, double t)
         {

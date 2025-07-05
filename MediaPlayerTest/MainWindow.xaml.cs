@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using NAudio.Wave;
 using Sn.Media;
 using Sn.Media.NAudio;
+using Sn.Media.OpenCvSharp4;
 using Sn.Media.Tests;
 
 namespace MediaPlayerTest
@@ -34,7 +35,7 @@ namespace MediaPlayerTest
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             _currentPlayingWave?.Stop();
-            framePlayer.Source = new BlinkFrameStream(200, 200, new ColorBgra(0, 0, 255, 255), new ColorBgra(0, 255, 0, 255), 2);
+            framePlayer.Source = new BufferedFrameStream(new VideoFileFrameStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4"));
             framePlayer.IsPlaying = true;
 
             Task.Run(() =>

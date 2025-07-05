@@ -34,6 +34,31 @@
             return Math.Abs(a); // 返回绝对值以避免负数
         }
 
+        public static Fraction FromValue(double value)
+        {
+            if (value == 0)
+                return new Fraction(0, 1); // 特殊情况: 0 可以表示为 0/1
+                                           // 使用 Math.Abs(value) 处理负值
+            double absValue = Math.Abs(value);
+            int sign = value < 0 ? -1 : 1; // 记录符号
+                                           // 将浮点数转化为分数
+            int denominator = 1;
+            while (absValue % 1 > 0)
+            {
+                absValue *= 10;
+                denominator *= 10;
+            }
+            int numerator = (int)absValue * sign;
+            // 简化分数
+            int gcd = GCD(Math.Abs(numerator), denominator);
+            if (gcd != 0) // 避免除以零
+            {
+                numerator /= gcd;
+                denominator /= gcd;
+            }
+            return new Fraction(numerator, denominator);
+        }
+
         public static Fraction operator +(Fraction a, Fraction b) =>
             new Fraction(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator);
         public static Fraction operator -(Fraction a, Fraction b) =>

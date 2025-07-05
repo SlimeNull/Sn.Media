@@ -27,6 +27,6 @@
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public int ReadFrame(byte[] buffer, int offset, int count);
+        public bool ReadFrame(byte[] buffer, int offset, int count);
     }
 }
