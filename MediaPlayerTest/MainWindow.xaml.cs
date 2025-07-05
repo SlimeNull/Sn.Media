@@ -21,7 +21,7 @@ namespace MediaPlayerTest
     /// </summary>
     public partial class MainWindow : Window
     {
-        WaveOutEvent? _currentPlayingWave;
+        SamplePlayer _samplePlayer = new SamplePlayer();
 
         public MainWindow()
         {
@@ -34,24 +34,17 @@ namespace MediaPlayerTest
 
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            _currentPlayingWave?.Stop();
             framePlayer.Source = new BufferedFrameStream(new VideoFileFrameStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4"));
             framePlayer.IsPlaying = true;
 
-            Task.Run(() =>
-            {
-                WaveOutEvent waveOutEvent = new WaveOutEvent();
-                waveOutEvent.Init(new WaveProviderWrapper(new SineWaveSampleStream(SampleFormat.Float32, 44100, 1, 1000, 1, 10)));
-                waveOutEvent.Play();
-
-                _currentPlayingWave = waveOutEvent;
-            });
+            _samplePlayer.Source = new AudioFileSampleStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4");
+            _samplePlayer.IsPlaying = true;
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             framePlayer.IsPlaying = false;
-            _currentPlayingWave?.Stop();
+            _samplePlayer.IsPlaying = false;
         }
     }
 }
