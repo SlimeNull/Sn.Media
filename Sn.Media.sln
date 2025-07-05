@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaPlayerTest", "MediaPlayerTest\MediaPlayerTest.csproj", "{DA906A8A-C736-493C-AEAF-11E782F448AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media", "Sn.Media\Sn.Media.csproj", "{A2AF474C-16EA-4AA1-9A01-229F834F3C7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.NAudio", "Sn.Media.NAudio\Sn.Media.NAudio.csproj", "{C83EB44D-DA10-4A61-B476-B151DA1B43E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.Tests", "Sn.Media.Tests\Sn.Media.Tests.csproj", "{1B47FB10-0535-45A8-A2B1-B79454D81A48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.WPF", "Sn.Media.WPF\Sn.Media.WPF.csproj", "{53E49A16-C9BC-4A8D-A820-A34BACA278D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.AForge", "Sn.Media.AForge\Sn.Media.AForge.csproj", "{BF5ED031-EC6A-41CC-9991-5239E053F25C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.Decoding", "Sn.Media.Decoding\Sn.Media.Decoding.csproj", "{992B3C8B-E801-46C8-A835-2FDDF0DEA11C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DA906A8A-C736-493C-AEAF-11E782F448AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA906A8A-C736-493C-AEAF-11E782F448AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA906A8A-C736-493C-AEAF-11E782F448AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA906A8A-C736-493C-AEAF-11E782F448AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2AF474C-16EA-4AA1-9A01-229F834F3C7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2AF474C-16EA-4AA1-9A01-229F834F3C7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2AF474C-16EA-4AA1-9A01-229F834F3C7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2AF474C-16EA-4AA1-9A01-229F834F3C7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C83EB44D-DA10-4A61-B476-B151DA1B43E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C83EB44D-DA10-4A61-B476-B151DA1B43E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C83EB44D-DA10-4A61-B476-B151DA1B43E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C83EB44D-DA10-4A61-B476-B151DA1B43E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B47FB10-0535-45A8-A2B1-B79454D81A48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B47FB10-0535-45A8-A2B1-B79454D81A48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B47FB10-0535-45A8-A2B1-B79454D81A48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B47FB10-0535-45A8-A2B1-B79454D81A48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53E49A16-C9BC-4A8D-A820-A34BACA278D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53E49A16-C9BC-4A8D-A820-A34BACA278D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53E49A16-C9BC-4A8D-A820-A34BACA278D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53E49A16-C9BC-4A8D-A820-A34BACA278D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF5ED031-EC6A-41CC-9991-5239E053F25C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF5ED031-EC6A-41CC-9991-5239E053F25C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF5ED031-EC6A-41CC-9991-5239E053F25C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF5ED031-EC6A-41CC-9991-5239E053F25C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{992B3C8B-E801-46C8-A835-2FDDF0DEA11C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{992B3C8B-E801-46C8-A835-2FDDF0DEA11C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{992B3C8B-E801-46C8-A835-2FDDF0DEA11C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{992B3C8B-E801-46C8-A835-2FDDF0DEA11C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D664CF24-77D1-4CFF-927D-D9158EDD37F0}
+	EndGlobalSection
+EndGlobal
