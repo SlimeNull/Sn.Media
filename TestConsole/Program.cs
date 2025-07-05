@@ -6,7 +6,7 @@ using Sn.Media.NAudio;
 
 Console.WriteLine("Hello, World!");
 
-var sampleStream = new SineWaveSampleStream(SampleFormat.Float32, 44100, 1, 1000, 1, 5);
+var sampleStream = new AudioFileSampleStream(@"D:\CloudMusic\MV\shanqiu.mp4");
 var samplePlayer = new SamplePlayer()
 {
     Source = sampleStream
@@ -14,10 +14,10 @@ var samplePlayer = new SamplePlayer()
 
 samplePlayer.IsPlaying = true;
 
-var frameStream = new VideoFileFrameStream(@"D:\CloudMusic\MV\shanqiu.mp4");
-var buffer = new byte[frameStream.FrameDataSize];
-
-while (frameStream.ReadFrame(buffer, 0, buffer.Length))
+while (true)
 {
-    Console.WriteLine("Next frame");
+    Console.CursorLeft = 0;
+    Console.Write($"Position: {sampleStream.Position / sampleStream.SampleRate}");
 }
+
+Console.ReadKey();

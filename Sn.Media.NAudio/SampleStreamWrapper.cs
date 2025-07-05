@@ -4,6 +4,10 @@ namespace Sn.Media.NAudio
 {
     public class SampleStreamWrapper : ISampleStream
     {
+        private readonly int _channels;
+        private readonly int _bytesPerSample;
+        private readonly WaveStream? _sourceAsWaveStream;
+
         public IWaveProvider Source { get; }
 
         public SampleFormat Format { get; }
@@ -12,14 +16,29 @@ namespace Sn.Media.NAudio
 
         public int Channels { get; }
 
-        public bool HasPosition => false;
+        public bool HasPosition => _sourceAsWaveStream is { };
 
-        public bool CanSeek => false;
+        public bool CanSeek => _sourceAsWaveStream is { CanSeek: true };
 
-        public long Position => throw new InvalidOperationException();
+        public long Position
+        {
+            get
+            {
+                if (_sourceAsWaveStream is not null)
+                {
+                    return _sourceAsWaveStream.Position / _bytesPerSample / _channels;
+                }
+
+                throw new InvalidOperationException();
+            }
+        }
 
         public SampleStreamWrapper(IWaveProvider source)
         {
+            _channels = source.WaveFormat.Channels;
+            _bytesPerSample = source.WaveFormat.BitsPerSample / 8;
+            _sourceAsWaveStream = source as WaveStream;
+
             Source = source;
 
             if (source.WaveFormat.Encoding == WaveFormatEncoding.Pcm)
@@ -51,6 +70,13 @@ namespace Sn.Media.NAudio
 
         public void Seek(long position)
         {
+            if (_sourceAsWaveStream is not null && _sourceAsWaveStream.CanSeek)
+            {
+                long bytePosition = position * _channels * _bytesPerSample;
+                _sourceAsWaveStream.Position = bytePosition;
+                return;
+            }
+
             throw new InvalidOperationException();
         }
 
