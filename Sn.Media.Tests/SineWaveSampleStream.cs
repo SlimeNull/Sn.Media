@@ -9,6 +9,7 @@
         private readonly double _amplitude; // 振幅
         private readonly int _duration; // 持续时间（秒）
         private readonly int _sampleGroupBytes;
+        private readonly long _endPosition;
         private long _position; // 当前样本位置
 
         public SineWaveSampleStream(SampleFormat format, int sampleRate, int channels, double frequency, double amplitude, int duration)
@@ -20,6 +21,7 @@
             _amplitude = amplitude;
             _duration = duration;
             _sampleGroupBytes = format.GetByteSize() * channels; // 每个样本组的字节数
+            _endPosition = (long)SampleRate * duration;
             _position = 0; // 初始化位置信息
         }
         public int Channels => _channels;
@@ -85,8 +87,15 @@
         public int ReadSamples(byte[] buffer, int offset, int count)
         {
             int readBytes = 0;
-            while (readBytes + _sampleGroupBytes <= count)
+            while (
+                readBytes + _sampleGroupBytes <= count)
             {
+                if (_endPosition > 0 &&
+                    _position < _endPosition)
+                {
+                    break;
+                }
+
                 readBytes += AddSample(buffer, offset + readBytes, _position);
                 _position++;
             }

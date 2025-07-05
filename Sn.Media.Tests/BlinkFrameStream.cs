@@ -9,16 +9,28 @@ namespace Sn.Media.Tests
         private readonly ColorBgra _color1;
         private readonly ColorBgra _color2;
         private readonly double _blinkPeriod; // in seconds
-        private long _currentPosition; // Current frame position
-        public BlinkFrameStream(int frameWidth, int frameHeight, ColorBgra color1, ColorBgra color2, double blinkPeriod)
+        private readonly double _duration;
+        private readonly long _endPosition;
+        private long _position; // Current frame position
+
+        public BlinkFrameStream(int frameWidth, int frameHeight, ColorBgra color1, ColorBgra color2, double blinkPeriod, double duration)
         {
             _frameWidth = frameWidth;
             _frameHeight = frameHeight;
             _color1 = color1;
             _color2 = color2;
             _blinkPeriod = blinkPeriod;
-            _currentPosition = 0;
+            _duration = duration;
+            _endPosition = (long)(30 * duration); // Assuming 30 FPS
+            _position = 0;
         }
+
+        public BlinkFrameStream(int frameWidth, int frameHeight, ColorBgra color1, ColorBgra color2, double blinkPeriod)
+            : this(frameWidth, frameHeight, color1, color2, blinkPeriod, 0)
+        {
+
+        }
+
         public FrameFormat Format => FrameFormat.Bgra8888;
         public Fraction FrameRate => new Fraction(30, 1); // Assuming 30 FPS
         public int FrameWidth => _frameWidth;
@@ -29,16 +41,22 @@ namespace Sn.Media.Tests
         public bool HasPosition => true;
         public bool CanSeek => true;
 
-        public long Position => _currentPosition;
+        public long Position => _position;
 
         public void Seek(long position)
         {
-            _currentPosition = position;
+            _position = position;
         }
         public bool ReadFrame(byte[] buffer, int offset, int count)
         {
+            if (_endPosition > 0 &&
+                _position >= _endPosition)
+            {
+                return false;
+            }
+
             // Calculate the time in the current frame cycle
-            double totalSeconds = ((double)_currentPosition / FrameRate.Numerator) * FrameRate.Denominator;
+            double totalSeconds = ((double)_position / FrameRate.Numerator) * FrameRate.Denominator;
             double phase = (totalSeconds % _blinkPeriod) / _blinkPeriod; // Normalize to [0, 1)
             ColorBgra currentColor;
             if (phase < 0.5)
@@ -64,7 +82,7 @@ namespace Sn.Media.Tests
                     buffer[offset + pixelIndex + 3] = currentColor.A; // Alpha
                 }
             }
-            _currentPosition++;
+            _position++;
 
             return true;
         }

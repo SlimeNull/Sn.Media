@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sn.Media.NAudio\Sn.Media.NAudio.csproj" />
     <ProjectReference Include="..\Sn.Media.OpenCvSharp4\Sn.Media.OpenCvSharp4.csproj" />
+    <ProjectReference Include="..\Sn.Media.Tests\Sn.Media.Tests.csproj" />
   </ItemGroup>
 
 </Project>
