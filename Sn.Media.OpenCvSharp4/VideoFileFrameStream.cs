@@ -20,9 +20,11 @@ namespace Sn.Media.OpenCvSharp4
         public int FrameDataSize { get; }
 
         public bool HasPosition => true;
+        public bool HasLength { get; }
         public bool CanSeek => false;
 
         public long Position => _position;
+        public long Length => _videoCapture.FrameCount > 0 ? _videoCapture.FrameCount : -1;
 
 
         public void Seek(long position)
@@ -55,6 +57,7 @@ namespace Sn.Media.OpenCvSharp4
                 throw new NotSupportedException();
             }
 
+            HasLength = _videoCapture.FrameCount > 0;
             Format = pixelBytes switch
             {
                 3 => FrameFormat.Bgr888,
@@ -72,7 +75,7 @@ namespace Sn.Media.OpenCvSharp4
         public VideoFileFrameStream(string filePath) : this(filePath, VideoCaptureAPIs.ANY)
         { }
 
-        public unsafe bool ReadFrame(byte[] buffer, int offset, int count)
+        public unsafe bool Read(Span<byte> buffer)
         {
             if (!_firstFrame)
             {
@@ -92,7 +95,7 @@ namespace Sn.Media.OpenCvSharp4
                 {
                     NativeMemory.Copy(
                         _buffer.DataPointer + y * stride,
-                        bufferPtr + offset + y * stride,
+                        bufferPtr + y * stride,
                         (nuint)stride);
                 }
             }

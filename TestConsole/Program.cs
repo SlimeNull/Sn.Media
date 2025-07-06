@@ -3,16 +3,23 @@ using Sn.Media.OpenCvSharp4;
 using Sn.Media;
 using Sn.Media.Tests;
 using Sn.Media.NAudio;
+using Sn.Media.Bass;
 
 Console.WriteLine("Hello, World!");
 
-var sampleStream = new AudioFileSampleStream(@"D:\CloudMusic\MV\shanqiu.mp4");
-var samplePlayer = new SamplePlayer()
+
+
+ManagedBass.Bass.Init();
+var waveFile = File.OpenRead(@"D:\CloudMusic\MV\shanqiu.wav");
+
+
+var sampleStream = new Sn.Media.NAudio.AudioFileSampleStream(@"D:\CloudMusic\MV\shanqiu.mp3");
+var player = new Sn.Media.Bass.SamplePlayer()
 {
-    Source = sampleStream
+    Source = sampleStream.AsNonSeekable().AsFormat(SampleFormat.UInt8),
 };
 
-samplePlayer.IsPlaying = true;
+player.IsPlaying = true;
 
 while (true)
 {

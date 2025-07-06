@@ -29,9 +29,11 @@
         public SampleFormat Format => _format;
 
         public bool HasPosition => true;
+        public bool HasLength => true;
         public bool CanSeek => true;
 
         public long Position => _position;
+        public long Length => _endPosition;
 
         private double GetSampleValue(long sampleIndex)
         {
@@ -39,7 +41,7 @@
             return _amplitude * Math.Sin(2 * Math.PI * _frequency * time); // 计算正弦波值
         }
 
-        private unsafe int AddSample(byte[] buffer, int offset, long sampleIndex)
+        private unsafe int AddSample(Span<byte> buffer, long sampleIndex)
         {
             var sampleValue = GetSampleValue(sampleIndex);
             fixed (byte* bufferPtr = buffer)
@@ -49,28 +51,28 @@
                     case SampleFormat.UInt8:
                         for (int c = 0; c < Channels; c++)
                         {
-                            bufferPtr[offset + c] = (byte)((sampleValue + 1.0) * 127.5); // 将值转换为 0-255 范围
+                            bufferPtr[c] = (byte)((sampleValue + 1.0) * 127.5); // 将值转换为 0-255 范围
                         }
                         return Channels * 1;
                     case SampleFormat.Int16:
                         for (int c = 0; c < Channels; c++)
                         {
                             short int16Value = (short)(sampleValue * short.MaxValue);
-                            *((short*)(bufferPtr + offset) + c) = int16Value;
+                            *((short*)bufferPtr + c) = int16Value;
                         }
                         return Channels * 2;
                     case SampleFormat.Int32:
                         for (int c = 0; c < Channels; c++)
                         {
                             int int32Value = (int)(sampleValue * int.MaxValue);
-                            *((int*)(bufferPtr + offset) + c) = int32Value;
+                            *((int*)bufferPtr + c) = int32Value;
                         }
                         return Channels * 4;
                     case SampleFormat.Float32:
                         for (int c = 0; c < Channels; c++)
                         {
                             float float32Value = (float)sampleValue;
-                            *((float*)(bufferPtr + offset) + c) = float32Value;
+                            *((float*)bufferPtr + c) = float32Value;
                         }
                         return Channels * 4;
                     default:
@@ -84,11 +86,11 @@
             _position = position;
         }
 
-        public int ReadSamples(byte[] buffer, int offset, int count)
+        public int Read(Span<byte> buffer)
         {
             int readBytes = 0;
             while (
-                readBytes + _sampleGroupBytes <= count)
+                readBytes + _sampleGroupBytes <= buffer.Length)
             {
                 if (_endPosition > 0 &&
                     _position < _endPosition)
@@ -96,7 +98,7 @@
                     break;
                 }
 
-                readBytes += AddSample(buffer, offset + readBytes, _position);
+                readBytes += AddSample(buffer.Slice(readBytes, buffer.Length - readBytes), _position);
                 _position++;
             }
 

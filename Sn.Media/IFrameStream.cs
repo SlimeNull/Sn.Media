@@ -10,9 +10,11 @@
         public int FrameDataSize { get; }
 
         public bool HasPosition { get; }
+        public bool HasLength { get; }
         public bool CanSeek { get; }
 
         public long Position { get; }
+        public long Length { get; }
 
         /// <summary>
         /// 设置或获取当前帧位置（以帧为单位）
@@ -27,6 +29,6 @@
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public bool ReadFrame(byte[] buffer, int offset, int count);
+        public bool Read(Span<byte> buffer);
     }
 }

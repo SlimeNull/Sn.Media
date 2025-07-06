@@ -1,12 +1,14 @@
-﻿using NAudio.Wave;
+﻿using System.Buffers;
+using NAudio.Wave;
 
 namespace Sn.Media.NAudio
 {
-    public class SampleStreamWrapper : ISampleStream
+    public class WaveSampleStream : ISampleStream
     {
         private readonly int _channels;
         private readonly int _bytesPerSample;
         private readonly WaveStream? _sourceAsWaveStream;
+        private readonly ArrayPool<byte> _bufferPool = ArrayPool<byte>.Create();
 
         public IWaveProvider Source { get; }
 
@@ -17,6 +19,7 @@ namespace Sn.Media.NAudio
         public int Channels { get; }
 
         public bool HasPosition => _sourceAsWaveStream is { };
+        public bool HasLength => _sourceAsWaveStream is { };
 
         public bool CanSeek => _sourceAsWaveStream is { CanSeek: true };
 
@@ -33,7 +36,20 @@ namespace Sn.Media.NAudio
             }
         }
 
-        public SampleStreamWrapper(IWaveProvider source)
+        public long Length
+        {
+            get
+            {
+                if (_sourceAsWaveStream is not null)
+                {
+                    return _sourceAsWaveStream.Length / _bytesPerSample / _channels;
+                }
+
+                throw new InvalidOperationException();
+            }
+        }
+
+        public WaveSampleStream(IWaveProvider source)
         {
             _channels = source.WaveFormat.Channels;
             _bytesPerSample = source.WaveFormat.BitsPerSample / 8;
@@ -80,9 +96,18 @@ namespace Sn.Media.NAudio
             throw new InvalidOperationException();
         }
 
-        public int ReadSamples(byte[] buffer, int offset, int count)
+        public int Read(Span<byte> buffer)
         {
-            return Source.Read(buffer, offset, count);
+            var array = _bufferPool.Rent(buffer.Length);
+            var bytesRead = Source.Read(array, 0, buffer.Length);
+
+            if (bytesRead > 0)
+            {
+                array.AsSpan().Slice(0, bytesRead).CopyTo(buffer);
+            }
+
+            _bufferPool.Return(array, clearArray: false);
+            return bytesRead;
         }
     }
 }

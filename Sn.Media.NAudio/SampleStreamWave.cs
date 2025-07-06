@@ -7,11 +7,11 @@ using NAudio.Wave;
 
 namespace Sn.Media.NAudio
 {
-    public class WaveProviderWrapper : IWaveProvider
+    public class SampleStreamWave : IWaveProvider
     {
         public ISampleStream Source { get; }
 
-        public WaveProviderWrapper(ISampleStream source)
+        public SampleStreamWave(ISampleStream source)
         {
             Source = source;
 
@@ -30,7 +30,7 @@ namespace Sn.Media.NAudio
 
         public int Read(byte[] buffer, int offset, int count)
         {
-            return Source.ReadSamples(buffer, offset, count);
+            return Source.Read(new Span<byte>(buffer, offset, count));
         }
     }
 }

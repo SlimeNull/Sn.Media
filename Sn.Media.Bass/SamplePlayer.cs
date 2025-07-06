@@ -1,33 +1,58 @@
-﻿using NAudio.Wave;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ManagedBass;
 
-namespace Sn.Media.NAudio
+namespace Sn.Media.Bass
 {
     public class SamplePlayer
     {
-        private readonly WaveOutEvent _waveOut;
         private ISampleStream? _source;
+        private int _streamHandle;
         private bool _isPlaying;
-
-        public SamplePlayer()
-        {
-            _waveOut = new WaveOutEvent();
-        }
 
         public ISampleStream? Source
         {
             get => _source;
             set
             {
-                _waveOut.Stop();
+                if (_streamHandle != 0)
+                {
+                    ManagedBass.Bass.StreamFree(_streamHandle);
+                }
+
                 _source = value;
 
                 if (value is not null)
                 {
-                    _waveOut.Init(new SampleStreamWave(value));
-
-                    if (IsPlaying)
+                    if (value.CanSeek)
                     {
-                        _waveOut.Play();
+                        _streamHandle = ManagedBass.Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Default, value.CreateFileProcedures(), 0);
+                    }
+                    else
+                    {
+                        var flags = BassFlags.Default;
+                        flags |= value.Format switch
+                        {
+                            SampleFormat.UInt8 => BassFlags.Byte,
+                            SampleFormat.Int16 => BassFlags.Default,
+                            SampleFormat.Float32 => BassFlags.Float,
+                            _ => throw new ArgumentException("Format not support")
+                        };
+
+                        _streamHandle = ManagedBass.Bass.CreateStream(value.SampleRate, value.Channels, flags, value.CreateStreamProcedure());
+                    }
+
+                    if (_streamHandle == 0)
+                    {
+                        throw new ArgumentException($"{ManagedBass.Bass.LastError}");
+                    }
+
+                    if (_isPlaying)
+                    {
+                        ManagedBass.Bass.ChannelPlay(_streamHandle);
                     }
                 }
             }
@@ -44,15 +69,16 @@ namespace Sn.Media.NAudio
                 }
 
                 _isPlaying = value;
+
                 if (_source is not null)
                 {
                     if (!value)
                     {
-                        _waveOut.Pause();
+                        ManagedBass.Bass.ChannelPause(_streamHandle);
                     }
                     else
                     {
-                        _waveOut.Play();
+                        ManagedBass.Bass.ChannelPlay(_streamHandle);
                     }
                 }
             }

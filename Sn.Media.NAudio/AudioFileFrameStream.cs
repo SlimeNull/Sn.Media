@@ -10,11 +10,11 @@ namespace Sn.Media.NAudio
     public class AudioFileSampleStream : ISampleStream
     {
         private readonly MediaFoundationReader _rawReader;
-        private readonly SampleStreamWrapper _wrapper;
+        private readonly WaveSampleStream _wrapper;
         public AudioFileSampleStream(string filePath)
         {
             _rawReader = new MediaFoundationReader(filePath);
-            _wrapper = new SampleStreamWrapper(_rawReader);
+            _wrapper = new WaveSampleStream(_rawReader);
         }
 
         public SampleFormat Format => ((ISampleStream)_wrapper).Format;
@@ -29,9 +29,13 @@ namespace Sn.Media.NAudio
 
         public long Position => ((ISampleStream)_wrapper).Position;
 
-        public int ReadSamples(byte[] buffer, int offset, int count)
+        public bool HasLength => ((ISampleStream)_wrapper).HasLength;
+
+        public long Length => ((ISampleStream)_wrapper).Length;
+
+        public int Read(Span<byte> buffer)
         {
-            return ((ISampleStream)_wrapper).ReadSamples(buffer, offset, count);
+            return ((ISampleStream)_wrapper).Read(buffer);
         }
 
         public void Seek(long position)

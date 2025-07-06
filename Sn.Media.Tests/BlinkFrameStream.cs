@@ -39,15 +39,17 @@ namespace Sn.Media.Tests
         public int FrameDataSize => FrameStride * FrameHeight;
 
         public bool HasPosition => true;
+        public bool HasLength => true;
         public bool CanSeek => true;
 
         public long Position => _position;
+        public long Length => _endPosition;
 
         public void Seek(long position)
         {
             _position = position;
         }
-        public bool ReadFrame(byte[] buffer, int offset, int count)
+        public bool Read(Span<byte> buffer)
         {
             if (_endPosition > 0 &&
                 _position >= _endPosition)
@@ -76,10 +78,10 @@ namespace Sn.Media.Tests
                 for (int j = 0; j < _frameWidth; j++)
                 {
                     int pixelIndex = (i * FrameStride) + (j * bytesPerPixel);
-                    buffer[offset + pixelIndex] = currentColor.B;   // Blue
-                    buffer[offset + pixelIndex + 1] = currentColor.G; // Green
-                    buffer[offset + pixelIndex + 2] = currentColor.R; // Red
-                    buffer[offset + pixelIndex + 3] = currentColor.A; // Alpha
+                    buffer[pixelIndex] = currentColor.B;   // Blue
+                    buffer[pixelIndex + 1] = currentColor.G; // Green
+                    buffer[pixelIndex + 2] = currentColor.R; // Red
+                    buffer[pixelIndex + 3] = currentColor.A; // Alpha
                 }
             }
             _position++;

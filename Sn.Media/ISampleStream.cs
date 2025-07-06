@@ -13,10 +13,12 @@ namespace Sn.Media
         public int Channels { get; }
 
         public bool HasPosition { get; }
+        public bool HasLength { get; }
         public bool CanSeek { get; }
 
 
         public long Position { get; }
+        public long Length { get; }
 
         /// <summary>
         /// 设置或获取当前样本位置（以一组样本为单位）
@@ -31,6 +33,6 @@ namespace Sn.Media
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public int ReadSamples(byte[] buffer, int offset, int count);
+        public int Read(Span<byte> buffer);
     }
 }

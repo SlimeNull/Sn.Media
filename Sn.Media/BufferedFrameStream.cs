@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,10 +32,12 @@ namespace Sn.Media
         public int FrameDataSize { get; }
 
         public bool HasPosition => true;
+        public bool HasLength { get; }
 
         public bool CanSeek { get; }
 
         public long Position => _position;
+        public long Length => _frameStream.Length;
 
         public BufferedFrameStream(IFrameStream frameStream, int bufferCount)
         {
@@ -55,6 +58,7 @@ namespace Sn.Media
             FrameStride = frameStream.FrameStride;
             FrameDataSize = frameStream.FrameDataSize;
             CanSeek = frameStream.CanSeek;
+            HasLength = frameStream.HasLength;
 
             _frameStream = frameStream;
             _worker = new BackgroundWorker();
@@ -83,7 +87,7 @@ namespace Sn.Media
                 }
 
                 var currentBuffer = _buffers[(_dataBufferIndex + _dataBufferCount) % _buffers.Length];
-                if (!_frameStream.ReadFrame(currentBuffer, 0, FrameDataSize))
+                if (!_frameStream.Read(currentBuffer))
                 {
                     _noMoreFrames = true;
                     break;
@@ -123,7 +127,7 @@ namespace Sn.Media
             }
         }
 
-        public bool ReadFrame(byte[] buffer, int offset, int count)
+        public bool Read(Span<byte> buffer)
         {
             while (_dataBufferCount == 0)
             {
@@ -136,7 +140,7 @@ namespace Sn.Media
             }
 
             var currentBuffer = _buffers[_dataBufferIndex];
-            Array.Copy(currentBuffer, 0, buffer, offset, count);
+            currentBuffer.CopyTo(buffer);
 
             lock (_bufferLock)
             {
