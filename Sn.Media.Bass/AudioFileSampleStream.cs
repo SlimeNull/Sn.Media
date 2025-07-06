@@ -1,7 +1,11 @@
 ﻿using ManagedBass;
+using PropertyChanged;
+using PropertyChanging;
 
 namespace Sn.Media.Bass
 {
+    [ImplementPropertyChanging]
+    [AddINotifyPropertyChangedInterface]
     public class AudioFileSampleStream : ISampleStream, IDisposable
     {
         private readonly int _streamHandle;
@@ -19,8 +23,8 @@ namespace Sn.Media.Bass
         public bool HasLength => true;
         public bool CanSeek => true;
 
-        public long Position => ManagedBass.Bass.ChannelGetPosition(_streamHandle, PositionFlags.Bytes) / _bytesPerSampleGroup / Channels;
-        public long Length => ManagedBass.Bass.ChannelGetLength(_streamHandle, PositionFlags.Bytes) / _bytesPerSampleGroup / Channels;
+        public long Position { get; private set; }
+        public long Length { get; }
 
         private AudioFileSampleStream(int bassStreamHandle)
         {
@@ -43,6 +47,7 @@ namespace Sn.Media.Bass
             };
 
             _bytesPerSampleGroup = rawFormat.GetByteSize();
+            Length = ManagedBass.Bass.ChannelGetLength(_streamHandle, PositionFlags.Bytes) / _bytesPerSampleGroup / Channels;
         }
 
         public AudioFileSampleStream(string filePath) :
@@ -55,19 +60,32 @@ namespace Sn.Media.Bass
             : this(ManagedBass.Bass.CreateStream(file, 0, 0, BassFlags.Decode))
         { }
 
+        private void EnsureNotDisposed()
+        {
+            if (_disposedValue)
+            {
+                throw new InvalidOperationException("Object disposed");
+            }
+        }
+
         public void Seek(long position)
         {
+            EnsureNotDisposed();
+
             long bytePosition = position * _bytesPerSampleGroup * Channels;
             ManagedBass.Bass.ChannelSetPosition(_streamHandle, bytePosition, PositionFlags.Bytes);
         }
 
         public unsafe int Read(Span<byte> buffer)
         {
+            EnsureNotDisposed();
+
             fixed (byte* bufferPtr = buffer)
             {
                 int ret = ManagedBass.Bass.ChannelGetData(_streamHandle, (nint)bufferPtr, buffer.Length | (int)ManagedBass.DataFlags.Float);
                 if (ret > 0)
                 {
+                    Position = ManagedBass.Bass.ChannelGetPosition(_streamHandle, PositionFlags.Bytes) / _bytesPerSampleGroup / Channels;
                     return ret;
                 }
 

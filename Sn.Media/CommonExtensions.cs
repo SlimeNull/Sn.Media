@@ -36,6 +36,18 @@ namespace Sn.Media
             return new NonSeekableSampleStream(sampleStream);
         }
 
+        public static IFrameStream AsNonSeekable(this IFrameStream frameStream)
+        {
+            ArgumentNullException.ThrowIfNull(frameStream);
+
+            if (!frameStream.CanSeek)
+            {
+                return frameStream;
+            }
+
+            return new NonSeekableFrameStream(frameStream);
+        }
+
         public static ISampleStream AsFormat(this ISampleStream sampleStream, SampleFormat format)
         {
             ArgumentNullException.ThrowIfNull(sampleStream);
@@ -79,6 +91,48 @@ namespace Sn.Media
             }
 
             public int Read(Span<byte> buffer)
+            {
+                return _source.Read(buffer);
+            }
+        }
+
+        private class NonSeekableFrameStream : IFrameStream
+        {
+            private readonly IFrameStream _source;
+
+            public NonSeekableFrameStream(IFrameStream source)
+            {
+                _source = source;
+            }
+
+            public FrameFormat Format => _source.Format;
+
+            public Fraction FrameRate => _source.FrameRate;
+
+            public int FrameWidth => _source.FrameWidth;
+
+            public int FrameHeight => _source.FrameHeight;
+
+            public int FrameStride => _source.FrameStride;
+
+            public int FrameDataSize => _source.FrameDataSize;
+
+            public bool HasPosition => _source.HasPosition;
+
+            public bool HasLength => _source.HasLength;
+
+            public bool CanSeek => false;
+
+            public long Position => _source.Position;
+
+            public long Length => _source.Length;
+
+            public void Seek(long position)
+            {
+                throw new InvalidOperationException();
+            }
+
+            public bool Read(Span<byte> buffer)
             {
                 return _source.Read(buffer);
             }

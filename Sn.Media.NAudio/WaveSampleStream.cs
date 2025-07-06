@@ -1,10 +1,16 @@
 ﻿using System.Buffers;
+using System.ComponentModel;
 using NAudio.Wave;
+using PropertyChanged;
+using PropertyChanging;
 
 namespace Sn.Media.NAudio
 {
-    public class WaveSampleStream : ISampleStream
+    public class WaveSampleStream : ISampleStream, INotifyPropertyChanging, INotifyPropertyChanged
     {
+        private static readonly PropertyChangingEventArgs _positionChangingEventArgs = new(nameof(Position));
+        private static readonly PropertyChangedEventArgs _positionChangedEventArgs = new(nameof(Position));
+
         private readonly int _channels;
         private readonly int _bytesPerSample;
         private readonly WaveStream? _sourceAsWaveStream;
@@ -99,7 +105,10 @@ namespace Sn.Media.NAudio
         public int Read(Span<byte> buffer)
         {
             var array = _bufferPool.Rent(buffer.Length);
+
+            PropertyChanging?.Invoke(this, _positionChangingEventArgs);
             var bytesRead = Source.Read(array, 0, buffer.Length);
+            PropertyChanged?.Invoke(this, _positionChangedEventArgs);
 
             if (bytesRead > 0)
             {
@@ -109,5 +118,8 @@ namespace Sn.Media.NAudio
             _bufferPool.Return(array, clearArray: false);
             return bytesRead;
         }
+
+        public event PropertyChangingEventHandler? PropertyChanging;
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

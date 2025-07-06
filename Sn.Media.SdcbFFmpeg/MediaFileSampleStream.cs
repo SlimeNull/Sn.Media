@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using PropertyChanged;
+using PropertyChanging;
 using Sdcb.FFmpeg.Codecs;
 using Sdcb.FFmpeg.Formats;
 using Sdcb.FFmpeg.Raw;
@@ -13,6 +15,8 @@ using Sdcb.FFmpeg.Utils;
 
 namespace Sn.Media.SdcbFFmpeg
 {
+    [ImplementPropertyChanging]
+    [AddINotifyPropertyChangedInterface]
     public class MediaFileSampleStream : ISampleStream, IDisposable
     {
         private readonly bool _leaveOpen;
@@ -25,7 +29,6 @@ namespace Sn.Media.SdcbFFmpeg
         private readonly int _bytesPerSampleGroup;
         private readonly bool _samplePlanar;
         private readonly ArrayPool<byte> _bufferPool = ArrayPool<byte>.Create();
-        private long _position;
         private byte[]? _samplesRemain;
         private int _samplesRemainDataSize;
         private long _samplesRemainPosition;
@@ -43,7 +46,7 @@ namespace Sn.Media.SdcbFFmpeg
 
         public bool CanSeek => true;
 
-        public long Position => _position;
+        public long Position { get; private set; }
 
         public long Length { get; }
 
@@ -133,7 +136,7 @@ namespace Sn.Media.SdcbFFmpeg
 
             var timeStamp = PositionToTimeStamp(position);
             _inputFormatContext.SeekFrame(timeStamp, _inputAudioStream.Index);
-            _position = position;
+            Position = position;
         }
 
         public unsafe int Read(Span<byte> buffer)
@@ -266,7 +269,7 @@ namespace Sn.Media.SdcbFFmpeg
 
                     _samplesRemain = _bufferPool.Rent(samplesRemainDataSize);
                     _samplesRemainDataSize = samplesRemainDataSize;
-                    _samplesRemainPosition = _position + totalRead;
+                    _samplesRemainPosition = Position + totalRead;
                     frameDataSpan.Slice(toWrite).CopyTo(_samplesRemain);
 
                     totalRead += toWrite;
@@ -281,7 +284,7 @@ namespace Sn.Media.SdcbFFmpeg
             packet.Free();
             frame.Free();
 
-            _position = lastFramePosition + totalRead / _bytesPerSampleGroup;
+            Position = lastFramePosition + totalRead / _bytesPerSampleGroup;
             return totalRead;
         }
 

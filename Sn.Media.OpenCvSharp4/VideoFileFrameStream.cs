@@ -1,15 +1,18 @@
 ﻿
 using System.Runtime.InteropServices;
 using OpenCvSharp;
+using PropertyChanged;
+using PropertyChanging;
 
 namespace Sn.Media.OpenCvSharp4
 {
+    [ImplementPropertyChanging]
+    [AddINotifyPropertyChangedInterface]
     public class VideoFileFrameStream : IFrameStream, IDisposable
     {
         private readonly VideoCapture _videoCapture;
         private readonly Mat _buffer;
         private bool _firstFrame = true;
-        private long _position;
         private bool _disposed = false;
 
         public FrameFormat Format { get; }
@@ -23,7 +26,7 @@ namespace Sn.Media.OpenCvSharp4
         public bool HasLength { get; }
         public bool CanSeek => false;
 
-        public long Position => _position;
+        public long Position { get; private set; }
         public long Length => _videoCapture.FrameCount > 0 ? _videoCapture.FrameCount : -1;
 
 
@@ -100,7 +103,7 @@ namespace Sn.Media.OpenCvSharp4
                 }
             }
 
-            _position++;
+            Position++;
             return true;
         }
 

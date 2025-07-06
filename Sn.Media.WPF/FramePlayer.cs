@@ -80,7 +80,7 @@ namespace Sn.Media.WPF
         {
             EnsureFrameBuffer(frameStream);
 
-            frameStream.Read(_frameDataBuffer, 0, _frameDataBuffer.Length);
+            frameStream.Read(new Span<byte>(_frameDataBuffer, 0, _frameDataBuffer.Length));
 
             _frameImageBuffer.Lock();
             var buffer = (byte*)_frameImageBuffer.BackBuffer;

@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
+    <PackageReference Include="PropertyChanging.Fody" Version="1.31.0" />
   </ItemGroup>
 
 </Project>

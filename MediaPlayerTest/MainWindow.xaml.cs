@@ -34,10 +34,10 @@ namespace MediaPlayerTest
 
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            framePlayer.Source = new BufferedFrameStream(new VideoFileFrameStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4"));
+            framePlayer.Source = new Sn.Media.SdcbFFmpeg.MediaFileFrameStream(@"D:\CloudMusic\MV\water.mp4").AsNonSeekable();
             framePlayer.IsPlaying = true;
 
-            _samplePlayer.Source = new MediaFoundationSampleStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4");
+            _samplePlayer.Source = new MediaFoundationSampleStream(@"D:\CloudMusic\MV\water.mp4");
             _samplePlayer.IsPlaying = true;
         }
 

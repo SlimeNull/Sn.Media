@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
+    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
+    <PackageReference Include="PropertyChanging.Fody" Version="1.31.0" />
   </ItemGroup>
 
   <ItemGroup>

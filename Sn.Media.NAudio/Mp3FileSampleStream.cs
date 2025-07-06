@@ -35,9 +35,9 @@ namespace Sn.Media.NAudio
 
         public long Length => ((ISampleStream)_wrapper).Length;
 
-        public void Dispose()
+        public void Seek(long position)
         {
-            ((IDisposable)_rawReader).Dispose();
+            ((ISampleStream)_wrapper).Seek(position);
         }
 
         public int Read(Span<byte> buffer)
@@ -45,9 +45,9 @@ namespace Sn.Media.NAudio
             return ((ISampleStream)_wrapper).Read(buffer);
         }
 
-        public void Seek(long position)
+        public void Dispose()
         {
-            ((ISampleStream)_wrapper).Seek(position);
+            ((IDisposable)_rawReader).Dispose();
         }
     }
 }

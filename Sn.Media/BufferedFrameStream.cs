@@ -5,9 +5,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using PropertyChanged;
+using PropertyChanging;
 
 namespace Sn.Media
 {
+    [ImplementPropertyChanging]
+    [AddINotifyPropertyChangedInterface]
     public class BufferedFrameStream : IFrameStream
     {
         private readonly object _bufferLock = new();
@@ -17,7 +21,6 @@ namespace Sn.Media
         private volatile bool _noMoreFrames;
         private volatile int _dataBufferIndex;
         private volatile int _dataBufferCount;
-        private long _position;
 
         public FrameFormat Format { get; }
 
@@ -36,7 +39,7 @@ namespace Sn.Media
 
         public bool CanSeek { get; }
 
-        public long Position => _position;
+        public long Position { get; private set; }
         public long Length => _frameStream.Length;
 
         public BufferedFrameStream(IFrameStream frameStream, int bufferCount)
@@ -62,6 +65,7 @@ namespace Sn.Media
 
             _frameStream = frameStream;
             _worker = new BackgroundWorker();
+            _worker.WorkerSupportsCancellation = true;
             _worker.DoWork += WorkerDoWork;
             _buffers = new byte[bufferCount][];
             for (int i = 0; i < _buffers.Length; i++)
@@ -81,8 +85,9 @@ namespace Sn.Media
         {
             while (_dataBufferCount < _buffers.Length)
             {
-                if (e.Cancel)
+                if (_worker.CancellationPending)
                 {
+                    e.Cancel = true;
                     return; // Exit if the worker is cancelled
                 }
 
@@ -107,10 +112,13 @@ namespace Sn.Media
                 throw new InvalidOperationException();
             }
 
-            _worker.CancelAsync();
-            while (_worker.CancellationPending)
+            if (_worker.IsBusy)
             {
-                // wait
+                _worker.CancelAsync();
+                while (_worker.CancellationPending)
+                {
+                    // wait
+                }
             }
 
             lock (_bufferLock)
@@ -125,6 +133,8 @@ namespace Sn.Media
             {
                 _worker.RunWorkerAsync();
             }
+
+            Position = _frameStream.Position;
         }
 
         public bool Read(Span<byte> buffer)
@@ -153,7 +163,7 @@ namespace Sn.Media
                 _worker.RunWorkerAsync();
             }
 
-            _position++;
+            Position++;
             return true;
         }
     }
