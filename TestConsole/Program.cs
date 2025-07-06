@@ -7,16 +7,13 @@ using Sn.Media.Bass;
 
 Console.WriteLine("Hello, World!");
 
-
-
 ManagedBass.Bass.Init();
-var waveFile = File.OpenRead(@"D:\CloudMusic\MV\shanqiu.wav");
 
-
-var sampleStream = new Sn.Media.NAudio.AudioFileSampleStream(@"D:\CloudMusic\MV\shanqiu.mp3");
+var sampleStream = new Sn.Media.SdcbFFmpeg.MediaFileSampleStream(@"D:\CloudMusic\MV\water.mp3");
+Console.WriteLine($"Length: {sampleStream.Length / sampleStream.SampleRate}");
 var player = new Sn.Media.Bass.SamplePlayer()
 {
-    Source = sampleStream.AsNonSeekable().AsFormat(SampleFormat.UInt8),
+    Source = sampleStream.AsNonSeekable(),
 };
 
 player.IsPlaying = true;

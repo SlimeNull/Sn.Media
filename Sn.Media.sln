@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaPlayerTest", "MediaPlayerTest\MediaPlayerTest.csproj", "{DA906A8A-C736-493C-AEAF-11E782F448AB}"
 EndProject
@@ -22,6 +22,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{DB37D9D6-FF8B-44A1-82AD-A3F6816DCA11}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.Bass", "Sn.Media.Bass\Sn.Media.Bass.csproj", "{9880E87A-CDC3-4FF5-9189-8ED120831C66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.SdcbFFmpeg", "Sn.Media.SdcbFFmpeg\Sn.Media.SdcbFFmpeg.csproj", "{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,14 @@ Global
 		{9880E87A-CDC3-4FF5-9189-8ED120831C66}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9880E87A-CDC3-4FF5-9189-8ED120831C66}.Release|x64.ActiveCfg = Release|x64
 		{9880E87A-CDC3-4FF5-9189-8ED120831C66}.Release|x64.Build.0 = Release|x64
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Debug|x64.Build.0 = Debug|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|x64.ActiveCfg = Release|Any CPU
+		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

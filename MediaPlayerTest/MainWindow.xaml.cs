@@ -37,7 +37,7 @@ namespace MediaPlayerTest
             framePlayer.Source = new BufferedFrameStream(new VideoFileFrameStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4"));
             framePlayer.IsPlaying = true;
 
-            _samplePlayer.Source = new AudioFileSampleStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4");
+            _samplePlayer.Source = new MediaFoundationSampleStream(@"D:\CloudMusic\MV\李宗盛 - 山丘.mp4");
             _samplePlayer.IsPlaying = true;
         }
 

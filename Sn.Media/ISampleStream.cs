@@ -17,7 +17,14 @@ namespace Sn.Media
         public bool CanSeek { get; }
 
 
+        /// <summary>
+        /// 采样位置. 一组采样视作 1, 例如双通道时, 两个采样为 1
+        /// </summary>
         public long Position { get; }
+
+        /// <summary>
+        /// 长度. 一组采样视作 1, 例如双通道时, 两个采样为 1
+        /// </summary>
         public long Length { get; }
 
         /// <summary>
@@ -29,10 +36,8 @@ namespace Sn.Media
         /// <summary>
         /// 读取样本数据到指定的缓冲区
         /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
+        /// <param name="buffer">缓冲区</param>
+        /// <returns>读取到的采样数据长度. 以字节为单位. 返回 0 则表示没有更多采样可读</returns>
         public int Read(Span<byte> buffer);
     }
 }

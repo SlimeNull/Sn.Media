@@ -7,11 +7,11 @@ using NAudio.Wave;
 
 namespace Sn.Media.NAudio
 {
-    public class AudioFileSampleStream : ISampleStream
+    public class MediaFoundationSampleStream : ISampleStream, IDisposable
     {
         private readonly MediaFoundationReader _rawReader;
         private readonly WaveSampleStream _wrapper;
-        public AudioFileSampleStream(string filePath)
+        public MediaFoundationSampleStream(string filePath)
         {
             _rawReader = new MediaFoundationReader(filePath);
             _wrapper = new WaveSampleStream(_rawReader);
@@ -32,6 +32,11 @@ namespace Sn.Media.NAudio
         public bool HasLength => ((ISampleStream)_wrapper).HasLength;
 
         public long Length => ((ISampleStream)_wrapper).Length;
+
+        public void Dispose()
+        {
+            ((IDisposable)_rawReader).Dispose();
+        }
 
         public int Read(Span<byte> buffer)
         {
