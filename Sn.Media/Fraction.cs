@@ -17,6 +17,11 @@
             }
         }
 
+        public override string ToString()
+        {
+            return $"{Numerator}/{Denominator}, {Value}";
+        }
+
         /// <summary>
         /// 计算两个整数的最大公约数（GCD）
         /// </summary>

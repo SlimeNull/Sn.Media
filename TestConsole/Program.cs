@@ -4,24 +4,21 @@ using Sn.Media;
 using Sn.Media.Tests;
 using Sn.Media.NAudio;
 using Sn.Media.Bass;
+using Sn.Media.SdcbFFmpeg;
 
 Console.WriteLine("Hello, World!");
 
-ManagedBass.Bass.Init();
-
-var sampleStream = new Sn.Media.SdcbFFmpeg.MediaFileSampleStream(@"D:\CloudMusic\MV\water.mp3");
-Console.WriteLine($"Length: {sampleStream.Length / sampleStream.SampleRate}");
-var player = new Sn.Media.Bass.SamplePlayer()
+var frameStream = new MediaFileFrameStream(@"C:\Users\Xavier\Videos\2025-02-07 12-58-36.mkv");
+var buffer = new byte[frameStream.FrameDataSize];
+for (int i = 0; i < 100; i++)
 {
-    Source = sampleStream.AsNonSeekable(),
-};
-
-player.IsPlaying = true;
-
-while (true)
-{
-    Console.CursorLeft = 0;
-    Console.Write($"Position: {sampleStream.Position / sampleStream.SampleRate}");
+    frameStream.Read(buffer);
 }
 
-Console.ReadKey();
+Console.WriteLine($"After 100 read, Position: {frameStream.Position}");
+frameStream.Seek(200);
+Console.WriteLine($"After seek 200, CurrentPosition: {frameStream.Position}");
+frameStream.Read(buffer);
+Console.WriteLine($"After 1 read, CurrentPosition: {frameStream.Position}");
+
+Console.ReadLine();
