@@ -89,6 +89,12 @@ namespace Sn.Media.NAudio
 
                 var totalSamples = (long)(value.TotalSeconds * _source.SampleRate);
                 _source.Seek(totalSamples);
+                
+                if (_isPlaying &&
+                    _waveOut.PlaybackState == PlaybackState.Stopped)
+                {
+                    _waveOut.Play();
+                }
             }
         }
 
