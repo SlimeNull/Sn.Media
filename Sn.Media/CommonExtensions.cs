@@ -24,6 +24,30 @@ namespace Sn.Media
             };
         }
 
+        public static void SeekByTime(this IFrameStream stream, TimeSpan time)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(stream));
+            if (!stream.CanSeek)
+            {
+                throw new ArgumentException("Stream is not seekable");
+            }
+
+            var position = (long)(time.TotalSeconds * stream.FrameRate.Numerator / stream.FrameRate.Denominator);
+            stream.Seek(position);
+        }
+
+        public static void SeekByTime(this ISampleStream stream, TimeSpan time)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(stream));
+            if (!stream.CanSeek)
+            {
+                throw new ArgumentException("Stream is not seekable");
+            }
+
+            var position = (long)(time.TotalSeconds * stream.SampleRate);
+            stream.Seek(position);
+        }
+
         public static ISampleStream AsNonSeekable(this ISampleStream sampleStream)
         {
             ArgumentNullException.ThrowIfNull(sampleStream);

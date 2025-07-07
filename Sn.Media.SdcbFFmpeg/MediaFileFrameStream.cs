@@ -131,23 +131,13 @@ namespace Sn.Media.SdcbFFmpeg
                 / timeBase.Num;
         }
 
-        private void DiscardFrameBuffer()
-        {
-            using var frame = new Frame();
-
-            while (_inputVideoDecoder.ReceiveFrame(frame) == CodecResult.Success)
-            {
-                // loop
-            }
-        }
-
-        public void Seek(long position)
+        public unsafe void Seek(long position)
         {
             EnsureNotDisposed();
 
             var timeStamp = PositionToTimeStamp(position - 1);
             _inputFormatContext.SeekFrame(timeStamp, _inputVideoStream.Index, AVSEEK_FLAG.Backward);
-            DiscardFrameBuffer();
+            ffmpeg.avcodec_flush_buffers(_inputVideoDecoder);
 
             Position = position;
         }
@@ -169,8 +159,8 @@ namespace Sn.Media.SdcbFFmpeg
                     var isKeyFrame = frame.PictType == AVPictureType.I;
                     Console.WriteLine($"Frame got. PTS: {frame.Pts}, Position: {TimeStampToPosition(frame.Pts)}, IsKeyFrame: {isKeyFrame}");
 #endif
-
-                    if (TimeStampToPosition(frame.Pts) >= Position)
+                    var framePosition = TimeStampToPosition(frame.Pts);
+                    if (framePosition >= Position)
                     {
                         break;
                     }
@@ -187,7 +177,10 @@ namespace Sn.Media.SdcbFFmpeg
                 while (packet.StreamIndex != _inputVideoStream.Index);
 
                 _inputVideoDecoder.SendPacket(packet);
+
+#if DEBUG
                 Console.WriteLine($"Send packet. PTS: {packet.Pts}, DTS: {packet.Dts}");
+#endif
             }
 
             var frameToRead = frame;

@@ -18,22 +18,26 @@
                 Padding="8 8"
                 BorderBrush="Gray"
                 BorderThickness="1 1 1 0">
-            <StackPanel Orientation="Horizontal">
-                <Button Content="Play"
-                        Click="PlayButton_Click"/>
-                <Button Content="Stop"
-                        Margin="4 0 0 0"
-                        Click="StopButton_Click"/>
-                <TextBlock Margin="4 0 0 0"
-                           Text="{Binding Position, ElementName=framePlayer, StringFormat=hh\\:mm\\:ss\\.fff}"
-                           VerticalAlignment="Center"/>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Play"
+                            Click="PlayButton_Click"/>
+                    <Button Content="Stop"
+                            Margin="4 0 0 0"
+                            Click="StopButton_Click"/>
+                    <TextBlock Margin="4 0 0 0"
+                               Text="{Binding Position, ElementName=framePlayer, StringFormat=hh\\:mm\\:ss\\.fff}"
+                               VerticalAlignment="Center"/>
 
-                <TextBlock VerticalAlignment="Center">
-                    <Run Text=", "/>
-                    <Run Text="{Binding ElementName=framePlayer,Path=Source.Position,Mode=OneWay,FallbackValue=0}"/>
-                    <Run Text="/"/>
-                    <Run Text="{Binding ElementName=framePlayer,Path=Source.Length,Mode=OneWay,FallbackValue=0}"/>
-                </TextBlock>
+                    <TextBlock VerticalAlignment="Center">
+                        <Run Text=", "/>
+                        <Run Text="{Binding ElementName=framePlayer,Path=Source.Position,Mode=OneWay,FallbackValue=0}"/>
+                        <Run Text="/"/>
+                        <Run Text="{Binding ElementName=framePlayer,Path=Source.Length,Mode=OneWay,FallbackValue=0}"/>
+                    </TextBlock>
+                </StackPanel>
+                <Slider Margin="0 8 0 0" Minimum="0" Maximum="100"
+                        Thumb.DragCompleted="Slider_DragCompleted"/>
             </StackPanel>
         </Border>
     </Grid>

@@ -10,7 +10,7 @@ using Sn.Media;
 
 namespace Sn.Media.WPF
 {
-    public class FramePlayer : FrameworkElement
+    public class FramePlayer : FrameworkElement, IFramePlayer
     {
         private bool _isPlaying;
         private bool _isChangingTimeByPlayLogic;
@@ -38,6 +38,22 @@ namespace Sn.Media.WPF
         {
             get { return (TimeSpan)GetValue(PositionProperty); }
             set { SetValue(PositionProperty, value); }
+        }
+        public TimeSpan Length
+        {
+            get
+            {
+                if (Source is null)
+                {
+                    throw new InvalidOperationException("No source specified");
+                }
+                if (!Source.HasLength)
+                {
+                    throw new InvalidOperationException("Source no length");
+                }
+
+                return TimeSpan.FromSeconds(Source.Length * Source.FrameRate.Denominator / Source.FrameRate.Numerator);
+            }
         }
 
         public Stretch Stretch
@@ -76,11 +92,14 @@ namespace Sn.Media.WPF
         }
 
         [MemberNotNull(nameof(_frameImageBuffer))]
-        private unsafe void ReadAndFillFrameImage(DrawingContext drawingContext, IFrameStream frameStream)
+        private unsafe bool ReadAndFillFrameImage(DrawingContext drawingContext, IFrameStream frameStream)
         {
             EnsureFrameBuffer(frameStream);
 
-            frameStream.Read(new Span<byte>(_frameDataBuffer, 0, _frameDataBuffer.Length));
+            if (!frameStream.Read(new Span<byte>(_frameDataBuffer, 0, _frameDataBuffer.Length)))
+            {
+                return false;
+            }
 
             _frameImageBuffer.Lock();
             var buffer = (byte*)_frameImageBuffer.BackBuffer;
@@ -99,6 +118,8 @@ namespace Sn.Media.WPF
 
             _frameImageBuffer.AddDirtyRect(new Int32Rect(0, 0, _frameImageBuffer.PixelWidth, _frameImageBuffer.PixelHeight));
             _frameImageBuffer.Unlock();
+
+            return true;
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -128,15 +149,20 @@ namespace Sn.Media.WPF
             }
 
             var requiredFrameIndex = (long)(position.TotalSeconds * source.FrameRate.Numerator / source.FrameRate.Denominator);
-            if (Math.Abs(requiredFrameIndex - source.Position) > 1 &&
-                source.CanSeek)
-            {
-                source.Seek(requiredFrameIndex);
-            }
+            Debug.WriteLine($"WPF FramePlayer Position: {position}, ReuqestFrameIndex: {requiredFrameIndex}, SourcePosition: {source.Position}");
 
-            while (source.Position <= requiredFrameIndex)
+            while (true)
             {
-                ReadAndFillFrameImage(drawingContext, source);
+                if (requiredFrameIndex - source.Position > 50)
+                {
+                    break;
+                }
+
+                if (source.Position > requiredFrameIndex || 
+                    !ReadAndFillFrameImage(drawingContext, source))
+                {
+                    break;
+                }
             }
 
             if (_frameImageBuffer is not null)
@@ -206,8 +232,15 @@ namespace Sn.Media.WPF
 
         private void CompositionTarget_Rendering(object? sender, EventArgs e)
         {
+            var length = Length;
+            var position = _startPlayTime + _stopwatchFromPlayStarted!.Elapsed;
+            if (position > length)
+            {
+                position = length;
+            }
+
             _isChangingTimeByPlayLogic = true;
-            Position = _startPlayTime + _stopwatchFromPlayStarted!.Elapsed;
+            Position = position;
             _isChangingTimeByPlayLogic = false;
         }
 
@@ -223,6 +256,11 @@ namespace Sn.Media.WPF
             {
                 player._startPlayTime = newTime;
                 player._stopwatchFromPlayStarted?.Restart();
+
+                if (player.Source is { CanSeek: true } seekableSource)
+                {
+                    seekableSource.SeekByTime(newTime);
+                }
             }
         }
 

@@ -2,7 +2,7 @@
 
 namespace Sn.Media.NAudio
 {
-    public class SamplePlayer
+    public class SamplePlayer : ISamplePlayer
     {
         private readonly WaveOutEvent _waveOut;
         private ISampleStream? _source;
@@ -89,6 +89,24 @@ namespace Sn.Media.NAudio
 
                 var totalSamples = (long)(value.TotalSeconds * _source.SampleRate);
                 _source.Seek(totalSamples);
+            }
+        }
+
+        public TimeSpan Length
+        {
+            get
+            {
+                if (_source is null)
+                {
+                    throw new InvalidOperationException("No source");
+                }
+
+                if (!_source.HasLength)
+                {
+                    throw new InvalidOperationException("Source no length");
+                }
+
+                return TimeSpan.FromSeconds(_source.Length / (double)_source.SampleRate);
             }
         }
     }

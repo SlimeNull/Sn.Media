@@ -7,7 +7,7 @@ using ManagedBass;
 
 namespace Sn.Media.Bass
 {
-    public class SamplePlayer
+    public class SamplePlayer : ISamplePlayer
     {
         private ISampleStream? _source;
         private int _streamHandle;
@@ -115,6 +115,24 @@ namespace Sn.Media.Bass
 
                 var totalSamples = (long)(value.TotalSeconds * _source.SampleRate);
                 _source.Seek(totalSamples);
+            }
+        }
+
+        public TimeSpan Length
+        {
+            get
+            {
+                if (_source is null)
+                {
+                    throw new InvalidOperationException("No source");
+                }
+
+                if (!_source.HasLength)
+                {
+                    throw new InvalidOperationException("Source no length");
+                }
+
+                return TimeSpan.FromSeconds(_source.Length / (double)_source.SampleRate);
             }
         }
     }

@@ -34,10 +34,10 @@ namespace MediaPlayerTest
 
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            framePlayer.Source = new Sn.Media.SdcbFFmpeg.MediaFileFrameStream(@"C:\Users\Xavier\Videos\2025-02-07 12-58-36.mkv").AsNonSeekable();
+            framePlayer.Source = new Sn.Media.SdcbFFmpeg.MediaFileFrameStream(@"D:\CloudMusic\MV\bbbb.mp4");
             framePlayer.IsPlaying = true;
 
-            _samplePlayer.Source = new MediaFoundationSampleStream(@"C:\Users\Xavier\Videos\2025-02-07 12-58-36.mkv");
+            _samplePlayer.Source = new MediaFoundationSampleStream(@"D:\CloudMusic\MV\bbbb.mp4");
             _samplePlayer.IsPlaying = true;
         }
 
@@ -45,6 +45,18 @@ namespace MediaPlayerTest
         {
             framePlayer.IsPlaying = false;
             _samplePlayer.IsPlaying = false;
+        }
+
+        private void Slider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            if (sender is not Slider slider)
+            {
+                return;
+            }
+
+            var progress = (slider.Value - slider.Minimum) / (slider.Maximum - slider.Minimum);
+            framePlayer.Position = framePlayer.Length * progress;
+            _samplePlayer.Position = _samplePlayer.Length * progress;
         }
     }
 }
