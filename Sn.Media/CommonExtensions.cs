@@ -32,8 +32,7 @@ namespace Sn.Media
                 throw new ArgumentException("Stream is not seekable");
             }
 
-            var position = (long)(time.TotalSeconds * stream.FrameRate.Numerator / stream.FrameRate.Denominator);
-            stream.Seek(position);
+            stream.Seek(time);
         }
 
         public static void SeekByTime(this ISampleStream stream, TimeSpan time)
@@ -141,24 +140,20 @@ namespace Sn.Media
 
             public int FrameDataSize => _source.FrameDataSize;
 
-            public bool HasPosition => _source.HasPosition;
-
-            public bool HasLength => _source.HasLength;
+            public bool HasDuration => _source.HasDuration;
 
             public bool CanSeek => false;
 
-            public long Position => _source.Position;
+            public TimeSpan Duration => _source.Duration;
 
-            public long Length => _source.Length;
-
-            public void Seek(long position)
+            public void Seek(TimeSpan time)
             {
                 throw new InvalidOperationException();
             }
 
-            public bool Read(Span<byte> buffer)
+            public bool Read(Span<byte> buffer, out TimeSpan time)
             {
-                return _source.Read(buffer);
+                return _source.Read(buffer, out time);
             }
         }
 

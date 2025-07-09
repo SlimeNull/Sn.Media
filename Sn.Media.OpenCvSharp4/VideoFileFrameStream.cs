@@ -22,15 +22,15 @@ namespace Sn.Media.OpenCvSharp4
         public int FrameStride { get; }
         public int FrameDataSize { get; }
 
-        public bool HasPosition => true;
-        public bool HasLength { get; }
+        public bool HasDuration { get; }
         public bool CanSeek => false;
 
-        public long Position { get; private set; }
-        public long Length => _videoCapture.FrameCount > 0 ? _videoCapture.FrameCount : -1;
+        public TimeSpan Duration => TimeSpan.FromSeconds(_videoCapture.FrameCount * _videoCapture.Fps);
+
+        private int _currentFrame = 0;
 
 
-        public void Seek(long position)
+        public void Seek(TimeSpan time)
         {
             throw new InvalidOperationException();
         }
@@ -60,7 +60,7 @@ namespace Sn.Media.OpenCvSharp4
                 throw new NotSupportedException();
             }
 
-            HasLength = _videoCapture.FrameCount > 0;
+            HasDuration = _videoCapture.FrameCount > 0;
             Format = pixelBytes switch
             {
                 3 => FrameFormat.Bgr888,
@@ -78,12 +78,14 @@ namespace Sn.Media.OpenCvSharp4
         public VideoFileFrameStream(string filePath) : this(filePath, VideoCaptureAPIs.ANY)
         { }
 
-        public unsafe bool Read(Span<byte> buffer)
+        public unsafe bool Read(Span<byte> buffer, out TimeSpan time)
         {
+            EnsureNotDisposed();
             if (!_firstFrame)
             {
                 if (!_videoCapture.Read(_buffer))
                 {
+                    time = default;
                     return false;
                 }
             }
@@ -103,14 +105,25 @@ namespace Sn.Media.OpenCvSharp4
                 }
             }
 
-            Position++;
+            _currentFrame++;
+            time = TimeSpan.FromSeconds(_currentFrame * _videoCapture.Fps);
             return true;
+        }
+
+        private void EnsureNotDisposed()
+        {
+            if (_disposed)
+            {
+                throw new InvalidOperationException("Object disposed");
+            }
         }
 
         public void Dispose()
         {
+            EnsureNotDisposed();
             ((IDisposable)_videoCapture).Dispose();
             ((IDisposable)_buffer).Dispose();
+            _disposed = true;
         }
     }
 }

@@ -9,9 +9,8 @@ namespace Sn.Media.Tests
         private readonly ColorBgra _color1;
         private readonly ColorBgra _color2;
         private readonly double _blinkPeriod; // in seconds
-        private readonly double _duration;
-        private readonly long _endPosition;
-        private long _position; // Current frame position
+        private readonly TimeSpan _duration;
+        private TimeSpan _position; // Current frame position
 
         public BlinkFrameStream(int frameWidth, int frameHeight, ColorBgra color1, ColorBgra color2, double blinkPeriod, double duration)
         {
@@ -20,9 +19,8 @@ namespace Sn.Media.Tests
             _color1 = color1;
             _color2 = color2;
             _blinkPeriod = blinkPeriod;
-            _duration = duration;
-            _endPosition = (long)(30 * duration); // Assuming 30 FPS
-            _position = 0;
+            _duration = TimeSpan.FromSeconds(duration);
+            _position = TimeSpan.Zero;
         }
 
         public BlinkFrameStream(int frameWidth, int frameHeight, ColorBgra color1, ColorBgra color2, double blinkPeriod)
@@ -38,28 +36,27 @@ namespace Sn.Media.Tests
         public int FrameStride => ((4 * _frameWidth + 3) / 4) * 4; // 4 bytes per pixel, aligned to 4 bytes
         public int FrameDataSize => FrameStride * FrameHeight;
 
-        public bool HasPosition => true;
-        public bool HasLength => true;
+        public bool HasDuration => true;
         public bool CanSeek => true;
 
-        public long Position => _position;
-        public long Length => _endPosition;
+        public TimeSpan Duration => _duration;
 
-        public void Seek(long position)
+        public void Seek(TimeSpan time)
         {
-            _position = position;
+            _position = time;
         }
-        public bool Read(Span<byte> buffer)
+        public bool Read(Span<byte> buffer, out TimeSpan time)
         {
-            if (_endPosition > 0 &&
-                _position >= _endPosition)
+            if (Duration > TimeSpan.Zero && _position >= Duration)
             {
+                time = default;
                 return false;
             }
 
             // Calculate the time in the current frame cycle
-            double totalSeconds = ((double)_position / FrameRate.Numerator) * FrameRate.Denominator;
+            double totalSeconds = ((double)_position.TotalSeconds / FrameRate.Numerator) * FrameRate.Denominator;
             double phase = (totalSeconds % _blinkPeriod) / _blinkPeriod; // Normalize to [0, 1)
+            time = TimeSpan.FromSeconds(totalSeconds);
             ColorBgra currentColor;
             if (phase < 0.5)
             {
@@ -84,7 +81,7 @@ namespace Sn.Media.Tests
                     buffer[pixelIndex + 3] = currentColor.A; // Alpha
                 }
             }
-            _position++;
+            _position += TimeSpan.FromSeconds((double)FrameRate.Numerator / FrameRate.Denominator);
 
             return true;
         }

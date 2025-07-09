@@ -12,15 +12,19 @@ namespace Sn.Media
 {
     [ImplementPropertyChanging]
     [AddINotifyPropertyChangedInterface]
-    public class BufferedFrameStream : IFrameStream
+    public class BufferedFrameStream : IFrameStream, IDisposable
     {
-        private readonly object _bufferLock = new();
+        private readonly object _readLock = new();
+        private readonly object _bufferModifyLock = new();
+        private volatile bool _disposedValue;
+
         private readonly IFrameStream _frameStream;
-        private readonly BackgroundWorker _worker;
-        private readonly byte[][] _buffers;
+        private readonly (byte[] Buffer, TimeSpan Time)[] _buffers;
         private volatile bool _noMoreFrames;
         private volatile int _dataBufferIndex;
         private volatile int _dataBufferCount;
+        private Task _workTask;
+
 
         public FrameFormat Format { get; }
 
@@ -34,13 +38,11 @@ namespace Sn.Media
 
         public int FrameDataSize { get; }
 
-        public bool HasPosition => true;
-        public bool HasLength { get; }
+        public bool HasDuration { get; }
 
         public bool CanSeek { get; }
 
-        public long Position { get; private set; }
-        public long Length => _frameStream.Length;
+        public TimeSpan Duration => _frameStream.Duration;
 
         public BufferedFrameStream(IFrameStream frameStream, int bufferCount)
         {
@@ -61,19 +63,16 @@ namespace Sn.Media
             FrameStride = frameStream.FrameStride;
             FrameDataSize = frameStream.FrameDataSize;
             CanSeek = frameStream.CanSeek;
-            HasLength = frameStream.HasLength;
+            HasDuration = frameStream.HasDuration;
 
             _frameStream = frameStream;
-            _worker = new BackgroundWorker();
-            _worker.WorkerSupportsCancellation = true;
-            _worker.DoWork += WorkerDoWork;
-            _buffers = new byte[bufferCount][];
+            _buffers = new (byte[], TimeSpan)[bufferCount];
             for (int i = 0; i < _buffers.Length; i++)
             {
-                _buffers[i] = new byte[FrameDataSize];
+                _buffers[i] = (new byte[FrameDataSize], default);
             }
 
-            _worker.RunWorkerAsync();
+            _workTask = Task.Run(WorkProcedure);
         }
 
         public BufferedFrameStream(IFrameStream frameStream) : this(frameStream, 16)
@@ -81,68 +80,66 @@ namespace Sn.Media
 
         }
 
-        private void WorkerDoWork(object? sender, DoWorkEventArgs e)
+        private void WorkProcedure()
         {
             while (_dataBufferCount < _buffers.Length)
             {
-                if (_worker.CancellationPending)
+                if (_disposedValue)
                 {
-                    e.Cancel = true;
-                    return; // Exit if the worker is cancelled
-                }
-
-                var currentBuffer = _buffers[(_dataBufferIndex + _dataBufferCount) % _buffers.Length];
-                if (!_frameStream.Read(currentBuffer))
-                {
-                    _noMoreFrames = true;
                     break;
                 }
 
-                lock (_bufferLock)
+                lock (_readLock)
                 {
-                    _dataBufferCount++;
+                    var currentBufferIndex = (_dataBufferIndex + _dataBufferCount) % _buffers.Length;
+                    var currentBuffer = _buffers[currentBufferIndex];
+                    if (!_frameStream.Read(currentBuffer.Buffer, out var time))
+                    {
+                        _noMoreFrames = true;
+                        break;
+                    }
+
+                    _buffers[currentBufferIndex] = (currentBuffer.Buffer, time);
+                    lock (_bufferModifyLock)
+                    {
+                        _dataBufferCount++;
+                    }
                 }
             }
         }
 
-        public void Seek(long position)
+        public void Seek(TimeSpan time)
         {
             if (!CanSeek)
             {
                 throw new InvalidOperationException();
             }
 
-            if (_worker.IsBusy)
+            lock (_readLock)
             {
-                _worker.CancelAsync();
-                while (_worker.CancellationPending)
+                lock (_bufferModifyLock)
                 {
-                    // wait
+                    _dataBufferIndex = 0;
+                    _dataBufferCount = 0;
                 }
+
+                _noMoreFrames = false;
+                _frameStream.Seek(time);
             }
 
-            lock (_bufferLock)
+            if (_workTask.IsCompleted)
             {
-                _dataBufferIndex = 0;
-                _dataBufferCount = 0;
+                _workTask = Task.Run(WorkProcedure);
             }
-
-            _frameStream.Seek(position);
-
-            if (!_worker.IsBusy)
-            {
-                _worker.RunWorkerAsync();
-            }
-
-            Position = _frameStream.Position;
         }
 
-        public bool Read(Span<byte> buffer)
+        public bool Read(Span<byte> buffer, out TimeSpan time)
         {
             while (_dataBufferCount == 0)
             {
                 if (_noMoreFrames)
                 {
+                    time = default;
                     return false; // No more frames to read
                 }
 
@@ -150,21 +147,40 @@ namespace Sn.Media
             }
 
             var currentBuffer = _buffers[_dataBufferIndex];
-            currentBuffer.CopyTo(buffer);
+            currentBuffer.Buffer.CopyTo(buffer);
+            time = currentBuffer.Time;
 
-            lock (_bufferLock)
+            lock (_bufferModifyLock)
             {
                 _dataBufferIndex = (_dataBufferIndex + 1) % _buffers.Length;
                 _dataBufferCount--;
             }
 
-            if (!_worker.IsBusy)
+            if (_workTask.IsCompleted)
             {
-                _worker.RunWorkerAsync();
+                _workTask = Task.Run(WorkProcedure);
             }
 
-            Position++;
             return true;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                _disposedValue = true;
+            }
+        }
+
+        ~BufferedFrameStream()
+        {
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
