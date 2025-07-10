@@ -38,13 +38,11 @@ namespace Sn.Media.SdcbFFmpeg
 
         public bool HasPosition => true;
 
-        public bool HasLength => true;
+        public bool HasDuration => true;
 
         public bool CanSeek => true;
 
-        public long Position { get; private set; }
-
-        public long Length { get; }
+        public TimeSpan Duration { get; }
 
         public MediaFileFrameStream(Stream mediaStream, bool leaveOpen)
         {
@@ -70,7 +68,7 @@ namespace Sn.Media.SdcbFFmpeg
             var frameRate = _inputVideoStream.Codecpar.Framerate;
             var frameWidth = _inputVideoStream.Codecpar.Width;
             var frameHeight = _inputVideoStream.Codecpar.Height;
-            var duration = _inputVideoStream.Duration;
+            var duration = TimeStampToTimeSpan(_inputVideoStream.Duration);
             var timeBase = _inputVideoStream.TimeBase;
 
             if (frameFormat != AVPixelFormat.Bgr24)
@@ -92,7 +90,7 @@ namespace Sn.Media.SdcbFFmpeg
             FrameHeight = frameHeight;
             FrameStride = frameWidth * 3;  // bgr
             FrameDataSize = FrameStride * FrameHeight;
-            Length = TimeStampToPosition(duration);
+            Duration = duration;
         }
 
         private void EnsureNotDisposed()
@@ -109,40 +107,30 @@ namespace Sn.Media.SdcbFFmpeg
         public MediaFileFrameStream(string filePath)
             : this(File.OpenRead(filePath), false) { }
 
-        private long TimeStampToPosition(long timeStamp)
+        private TimeSpan TimeStampToTimeSpan(long timeStamp)
         {
             var timeBase = _inputVideoStream.TimeBase;
 
-            return timeStamp
-                * timeBase.Num
-                * FrameRate.Numerator
-                / FrameRate.Denominator
-                / timeBase.Den;
+            return TimeSpan.FromSeconds(timeStamp * timeBase.Num / (double)timeBase.Den);
         }
 
-        private long PositionToTimeStamp(long position)
+        private long TimeSpanToTimeStamp(TimeSpan time)
         {
             var timeBase = _inputVideoStream.TimeBase;
 
-            return position
-                * timeBase.Den
-                * FrameRate.Denominator
-                / FrameRate.Numerator
-                / timeBase.Num;
+            return (long)((time.TotalSeconds * timeBase.Den) / timeBase.Num);
         }
 
-        public unsafe void Seek(long position)
+        public unsafe void Seek(TimeSpan position)
         {
             EnsureNotDisposed();
 
-            var timeStamp = PositionToTimeStamp(position - 1);
+            var timeStamp = TimeSpanToTimeStamp(position);
             _inputFormatContext.SeekFrame(timeStamp, _inputVideoStream.Index, AVSEEK_FLAG.Backward);
             ffmpeg.avcodec_flush_buffers(_inputVideoDecoder);
-
-            Position = position;
         }
 
-        public unsafe bool Read(Span<byte> buffer)
+        public unsafe bool Read(Span<byte> buffer, out TimeSpan time)
         {
             EnsureNotDisposed();
 
@@ -151,28 +139,32 @@ namespace Sn.Media.SdcbFFmpeg
 
             while (true)
             {
-                var result = _inputVideoDecoder.ReceiveFrame(frame);
+                var frameResult = _inputVideoDecoder.ReceiveFrame(frame);
 
-                if (result == CodecResult.Success)
+                if (frameResult == CodecResult.Success)
                 {
 #if DEBUG
                     var isKeyFrame = frame.PictType == AVPictureType.I;
-                    Console.WriteLine($"Frame got. PTS: {frame.Pts}, Position: {TimeStampToPosition(frame.Pts)}, IsKeyFrame: {isKeyFrame}");
+                    Console.WriteLine($"Frame got. PTS: {frame.Pts}, Position: {TimeStampToTimeSpan(frame.Pts)}, IsKeyFrame: {isKeyFrame}");
 #endif
-                    var framePosition = TimeStampToPosition(frame.Pts);
-                    if (framePosition >= Position)
-                    {
-                        break;
-                    }
+                    var framePosition = TimeStampToTimeSpan(frame.Pts);
+                    time = framePosition;
+                    break;
                 }
-                else if (result == CodecResult.EOF)
+                else if (frameResult == CodecResult.EOF)
                 {
+                    time = TimeSpan.Zero;
                     return false;
                 }
 
                 do
                 {
-                    _inputFormatContext.ReadFrame(packet);
+                    var packetResult = _inputFormatContext.ReadFrame(packet);
+                    if (packetResult == CodecResult.EOF)
+                    {
+                        time = TimeSpan.Zero;
+                        return false;
+                    }
                 }
                 while (packet.StreamIndex != _inputVideoStream.Index);
 
@@ -198,7 +190,6 @@ namespace Sn.Media.SdcbFFmpeg
                     .CopyTo(buffer.Slice(FrameStride * y));
             }
 
-            Position = TimeStampToPosition(frame.Pts) + 1;
             return true;
         }
 

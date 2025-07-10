@@ -1,4 +1,4 @@
-
+﻿
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -14,8 +14,9 @@ namespace Sn.Media.WPF
     {
         private bool _isPlaying;
         private bool _isChangingTimeByPlayLogic;
-        private TimeSpan _currentTime;
         private byte[]? _frameDataBuffer;
+        private bool _hasBufferedFrame;
+        private TimeSpan _bufferedFrameTime;
         private WriteableBitmap? _frameImageBuffer;
 
         private TimeSpan _startPlayTime;
@@ -39,7 +40,7 @@ namespace Sn.Media.WPF
             get { return (TimeSpan)GetValue(PositionProperty); }
             set { SetValue(PositionProperty, value); }
         }
-        public TimeSpan Length
+        public TimeSpan Duration
         {
             get
             {
@@ -47,12 +48,12 @@ namespace Sn.Media.WPF
                 {
                     throw new InvalidOperationException("No source specified");
                 }
-                if (!Source.HasLength)
+                if (!Source.HasDuration)
                 {
-                    throw new InvalidOperationException("Source no length");
+                    throw new InvalidOperationException("Source has no duration specified");
                 }
 
-                return TimeSpan.FromSeconds(Source.Length * Source.FrameRate.Denominator / Source.FrameRate.Numerator);
+                return Source.Duration;
             }
         }
 
@@ -91,24 +92,16 @@ namespace Sn.Media.WPF
             }
         }
 
-        [MemberNotNull(nameof(_frameImageBuffer))]
-        private unsafe bool ReadAndFillFrameImage(DrawingContext drawingContext, IFrameStream frameStream)
+        private unsafe void FillFrameImage(IFrameStream frameStream, WriteableBitmap writeableBitmap, byte[] frameBuffer)
         {
-            EnsureFrameBuffer(frameStream);
+            writeableBitmap.Lock();
+            var buffer = (byte*)writeableBitmap.BackBuffer;
+            var stride = Math.Min(frameStream.FrameStride, writeableBitmap.BackBufferStride);
+            var height = writeableBitmap.PixelHeight;
 
-            if (!frameStream.Read(new Span<byte>(_frameDataBuffer, 0, _frameDataBuffer.Length)))
+            fixed (byte* bufferPtr = frameBuffer)
             {
-                return false;
-            }
-
-            _frameImageBuffer.Lock();
-            var buffer = (byte*)_frameImageBuffer.BackBuffer;
-            var stride = Math.Min(frameStream.FrameStride, _frameImageBuffer.BackBufferStride);
-            var height = _frameImageBuffer.PixelHeight;
-
-            fixed (byte* bufferPtr = _frameDataBuffer)
-            {
-                for (int y = 0; y < _frameImageBuffer.Height; y++)
+                for (int y = 0; y < writeableBitmap.Height; y++)
                 {
                     NativeMemory.Copy(bufferPtr + y * frameStream.FrameStride,
                                       buffer + y * stride,
@@ -116,10 +109,17 @@ namespace Sn.Media.WPF
                 }
             }
 
-            _frameImageBuffer.AddDirtyRect(new Int32Rect(0, 0, _frameImageBuffer.PixelWidth, _frameImageBuffer.PixelHeight));
-            _frameImageBuffer.Unlock();
+            writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, writeableBitmap.PixelWidth, writeableBitmap.PixelHeight));
+            writeableBitmap.Unlock();
+        }
 
-            return true;
+        private unsafe void ClearFrameImage(WriteableBitmap writeableBitmap)
+        {
+            writeableBitmap.Lock();
+            NativeMemory.Clear((void*)writeableBitmap.BackBuffer, (nuint)(writeableBitmap.BackBufferStride * writeableBitmap.PixelHeight));
+
+            writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, writeableBitmap.PixelWidth, writeableBitmap.PixelHeight));
+            writeableBitmap.Unlock();
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -148,22 +148,48 @@ namespace Sn.Media.WPF
                 return;
             }
 
-            var requiredFrameIndex = (long)(position.TotalSeconds * source.FrameRate.Numerator / source.FrameRate.Denominator);
-            Debug.WriteLine($"WPF FramePlayer Position: {position}, ReuqestFrameIndex: {requiredFrameIndex}, SourcePosition: {source.Position}");
+            EnsureFrameBuffer(source);
 
+            bool filled = false;
             while (true)
             {
-                if (requiredFrameIndex - source.Position > 50)
+                if (!_hasBufferedFrame)
                 {
-                    break;
+                    _hasBufferedFrame = source.Read(_frameDataBuffer, out _bufferedFrameTime);
                 }
 
-                if (source.Position > requiredFrameIndex || 
-                    !ReadAndFillFrameImage(drawingContext, source))
+                // 有帧
+                if (_hasBufferedFrame)
                 {
+                    if (_bufferedFrameTime <= position)
+                    {
+#if DEBUG
+                        if (filled)
+                        {
+                            Debug.WriteLine("Skip Frame");
+                        }
+#endif
+
+                        FillFrameImage(source, _frameImageBuffer, _frameDataBuffer);
+                        _hasBufferedFrame = false;
+                        filled = true;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    if (!filled)
+                    {
+                        ClearFrameImage(_frameImageBuffer);
+                    }
+
                     break;
                 }
             }
+
 
             if (_frameImageBuffer is not null)
             {
@@ -232,7 +258,7 @@ namespace Sn.Media.WPF
 
         private void CompositionTarget_Rendering(object? sender, EventArgs e)
         {
-            var length = Length;
+            var length = Duration;
             var position = _startPlayTime + _stopwatchFromPlayStarted!.Elapsed;
             if (position > length)
             {
@@ -256,6 +282,7 @@ namespace Sn.Media.WPF
             {
                 player._startPlayTime = newTime;
                 player._stopwatchFromPlayStarted?.Restart();
+                player._hasBufferedFrame = false;
 
                 if (player.Source is { CanSeek: true } seekableSource)
                 {
@@ -285,7 +312,7 @@ namespace Sn.Media.WPF
         {
             return
                 value is null ||
-                (value is IFrameStream frameStream && frameStream.Format.IsSupportedPixelFormat() && frameStream.HasPosition);
+                (value is IFrameStream frameStream && frameStream.Format.IsSupportedPixelFormat());
         }
     }
 

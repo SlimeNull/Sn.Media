@@ -9,26 +9,22 @@
         public int FrameStride { get; }
         public int FrameDataSize { get; }
 
-        public bool HasPosition { get; }
-        public bool HasLength { get; }
+        public bool HasDuration { get; }
         public bool CanSeek { get; }
 
-        public long Position { get; }
-        public long Length { get; }
+        public TimeSpan Duration { get; }
 
         /// <summary>
         /// 设置或获取当前帧位置（以帧为单位）
         /// </summary>
         /// <param name="position"></param>
-        public void Seek(long position);
+        public void Seek(TimeSpan time);
 
         /// <summary>
         /// 读取一帧数据到指定的缓冲区
         /// </summary>
         /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
         /// <returns></returns>
-        public bool Read(Span<byte> buffer);
+        public bool Read(Span<byte> buffer, out TimeSpan position);
     }
 }
