@@ -50,7 +50,7 @@ namespace Sn.Media.WPF
                 }
                 if (!Source.HasDuration)
                 {
-                    throw new InvalidOperationException("Source no length");
+                    throw new InvalidOperationException("Source has no duration specified");
                 }
 
                 return Source.Duration;
