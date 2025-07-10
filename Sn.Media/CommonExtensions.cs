@@ -24,17 +24,6 @@ namespace Sn.Media
             };
         }
 
-        public static void SeekByTime(this IFrameStream stream, TimeSpan time)
-        {
-            ArgumentNullException.ThrowIfNull(nameof(stream));
-            if (!stream.CanSeek)
-            {
-                throw new ArgumentException("Stream is not seekable");
-            }
-
-            stream.Seek(time);
-        }
-
         public static void SeekByTime(this ISampleStream stream, TimeSpan time)
         {
             ArgumentNullException.ThrowIfNull(nameof(stream));

@@ -246,7 +246,7 @@ namespace Sn.Media.WPF
 
         public static readonly DependencyProperty SourceProperty =
             DependencyProperty.Register("Source", typeof(IFrameStream), typeof(FramePlayer),
-                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender), ValidateSource);
+                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender, propertyChangedCallback: OnSourceChanged), ValidateSource);
 
         public static readonly DependencyProperty IsPlayingProperty =
             DependencyProperty.Register("IsPlaying", typeof(bool), typeof(FramePlayer),
@@ -286,8 +286,20 @@ namespace Sn.Media.WPF
 
                 if (player.Source is { CanSeek: true } seekableSource)
                 {
-                    seekableSource.SeekByTime(newTime);
+                    seekableSource.Seek(newTime);
                 }
+            }
+        }
+        private static void OnSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not FramePlayer player)
+            {
+                return;
+            }
+
+            if (e.NewValue is IFrameStream { CanSeek: true } seekableFrameStream)
+            {
+                seekableFrameStream.Seek(player.Position);
             }
         }
 
