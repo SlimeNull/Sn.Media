@@ -54,7 +54,7 @@ namespace Sn.Media.Tests
             }
 
             // Calculate the time in the current frame cycle
-            double totalSeconds = ((double)_position.TotalSeconds / FrameRate.Numerator) * FrameRate.Denominator;
+            double totalSeconds = _position.TotalSeconds;
             double phase = (totalSeconds % _blinkPeriod) / _blinkPeriod; // Normalize to [0, 1)
             time = TimeSpan.FromSeconds(totalSeconds);
             ColorBgra currentColor;
