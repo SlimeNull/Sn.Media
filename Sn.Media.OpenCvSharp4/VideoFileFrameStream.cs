@@ -25,7 +25,7 @@ namespace Sn.Media.OpenCvSharp4
         public bool HasDuration { get; }
         public bool CanSeek => false;
 
-        public TimeSpan Duration => TimeSpan.FromSeconds(_videoCapture.FrameCount * _videoCapture.Fps);
+        public TimeSpan Duration => TimeSpan.FromSeconds(_videoCapture.FrameCount / _videoCapture.Fps);
 
         private int _currentFrame = 0;
 
