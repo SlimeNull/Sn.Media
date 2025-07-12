@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.Bass", "Sn.Media.B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sn.Media.SdcbFFmpeg", "Sn.Media.SdcbFFmpeg\Sn.Media.SdcbFFmpeg.csproj", "{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFormsTest", "WinFormsTest\WinFormsTest.csproj", "{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,14 @@ Global
 		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|x64.ActiveCfg = Release|Any CPU
 		{EEA6F8DE-80CF-4BC3-9343-FE8E25BADEBA}.Release|x64.Build.0 = Release|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Debug|x64.Build.0 = Debug|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C2DBE06-D2DD-4363-932E-3E321E6BD6CF}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

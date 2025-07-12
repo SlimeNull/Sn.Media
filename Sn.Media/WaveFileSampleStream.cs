@@ -1,4 +1,7 @@
-﻿namespace Sn.Media
+﻿using System.Buffers;
+using System.Runtime.InteropServices;
+
+namespace Sn.Media
 {
     public class WaveFileSampleStream : ISampleStream
     {
@@ -7,6 +10,11 @@
         private readonly long _streamSampleStartPosition;
         private readonly int _bytesPerSampleGroup;
 
+#if NET8_0_OR_GREATER
+
+#else
+        private readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Create();
+#endif
         private WaveFileSampleStream(WaveFileHeader header, Stream stream)
         {
             Format = header.AudioFormat switch
@@ -53,7 +61,16 @@
 
         public int Read(Span<byte> buffer)
         {
+#if NET8_0_OR_GREATER
             return _stream.Read(buffer);
+#else
+            var array = _arrayPool.Rent(buffer.Length);
+            var read = _stream.Read(array, 0, buffer.Length);
+            array.AsSpan(0, buffer.Length).CopyTo(buffer);
+            _arrayPool.Return(array);
+
+            return read;
+#endif
         }
 
         public void Seek(long position)

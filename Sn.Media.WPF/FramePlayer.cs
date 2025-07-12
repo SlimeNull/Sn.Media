@@ -103,9 +103,16 @@ namespace Sn.Media.WPF
             {
                 for (int y = 0; y < writeableBitmap.Height; y++)
                 {
+#if NET8_0_OR_GREATER
                     NativeMemory.Copy(bufferPtr + y * frameStream.FrameStride,
                                       buffer + y * stride,
                                       (nuint)stride);
+#else
+                    Buffer.MemoryCopy(bufferPtr + y * frameStream.FrameStride,
+                                      buffer + y * stride,
+                                      stride,
+                                      stride);
+#endif
                 }
             }
 
@@ -116,7 +123,11 @@ namespace Sn.Media.WPF
         private unsafe void ClearFrameImage(WriteableBitmap writeableBitmap)
         {
             writeableBitmap.Lock();
+#if NET8_0_OR_GREATER
             NativeMemory.Clear((void*)writeableBitmap.BackBuffer, (nuint)(writeableBitmap.BackBufferStride * writeableBitmap.PixelHeight));
+#else
+            new Span<byte>((void*)writeableBitmap.BackBuffer, writeableBitmap.BackBufferStride * writeableBitmap.PixelHeight).Clear();
+#endif
 
             writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, writeableBitmap.PixelWidth, writeableBitmap.PixelHeight));
             writeableBitmap.Unlock();

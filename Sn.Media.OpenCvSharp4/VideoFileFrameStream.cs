@@ -98,10 +98,18 @@ namespace Sn.Media.OpenCvSharp4
             {
                 for (int y = 0; y < height; y++)
                 {
+#if NET8_0_OR_GREATER
                     NativeMemory.Copy(
                         _buffer.DataPointer + y * stride,
                         bufferPtr + y * stride,
                         (nuint)stride);
+#else
+                    Buffer.MemoryCopy(
+                        _buffer.DataPointer + y * stride,
+                        bufferPtr + y * stride,
+                        stride,
+                        stride);
+#endif
                 }
             }
 

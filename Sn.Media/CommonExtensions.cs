@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +25,11 @@ namespace Sn.Media
 
         public static void SeekByTime(this ISampleStream stream, TimeSpan time)
         {
-            ArgumentNullException.ThrowIfNull(nameof(stream));
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
             if (!stream.CanSeek)
             {
                 throw new ArgumentException("Stream is not seekable");
@@ -38,7 +41,10 @@ namespace Sn.Media
 
         public static ISampleStream AsNonSeekable(this ISampleStream sampleStream)
         {
-            ArgumentNullException.ThrowIfNull(sampleStream);
+            if (sampleStream is null)
+            {
+                throw new ArgumentNullException(nameof(sampleStream));
+            }
 
             if (!sampleStream.CanSeek)
             {
@@ -50,7 +56,10 @@ namespace Sn.Media
 
         public static IFrameStream AsNonSeekable(this IFrameStream frameStream)
         {
-            ArgumentNullException.ThrowIfNull(frameStream);
+            if (frameStream is null)
+            {
+                throw new ArgumentNullException(nameof(frameStream));
+            }
 
             if (!frameStream.CanSeek)
             {
@@ -62,7 +71,10 @@ namespace Sn.Media
 
         public static ISampleStream AsFormat(this ISampleStream sampleStream, SampleFormat format)
         {
-            ArgumentNullException.ThrowIfNull(sampleStream);
+            if (sampleStream is null)
+            {
+                throw new ArgumentNullException(nameof(sampleStream));
+            }
 
             if (sampleStream.Format == format)
             {

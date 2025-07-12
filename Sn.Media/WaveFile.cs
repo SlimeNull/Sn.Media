@@ -1,4 +1,6 @@
-﻿namespace Sn.Media
+﻿using Sn.Media.Internal;
+
+namespace Sn.Media
 {
     public static class WaveFile
     {
@@ -21,7 +23,7 @@
                 dataSize = (uint)(bytesPerSampleGroup * sampleStream.Length);
 
                 var header = WaveFileHeader.Create(sampleStream, null);
-                dest.Write(new ReadOnlySpan<byte>(&header, sizeof(WaveFileHeader)));
+                dest.WriteStructure(header);
             }
             else
             {
@@ -49,7 +51,7 @@
                 dest.Seek(startPosition, SeekOrigin.Begin);
 
                 var header = WaveFileHeader.Create(sampleStream, (uint)sampleBytesRead);
-                dest.Write(new ReadOnlySpan<byte>(&header, sizeof(WaveFileHeader)));
+                dest.WriteStructure(header);
 
                 dest.Seek(endPosition, SeekOrigin.Begin);
             }

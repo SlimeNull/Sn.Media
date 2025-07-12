@@ -29,7 +29,7 @@ namespace Sn.Media.Bass
                 {
                     if (value.CanSeek)
                     {
-                        _streamHandle = ManagedBass.Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Default, value.CreateFileProcedures(), 0);
+                        _streamHandle = ManagedBass.Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Default, value.CreateFileProcedures(), default);
                     }
                     else
                     {

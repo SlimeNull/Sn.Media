@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -154,10 +155,20 @@ namespace Sn.Media
 
         private static int ReadComplete(Stream stream, Span<byte> buffer)
         {
+#if NET8_0_OR_GREATER
+#else
+            byte[] arrayBuffer = new byte[buffer.Length];
+#endif
+
             int totalBytesRead = 0;
             while (totalBytesRead < buffer.Length)
             {
+#if NET8_0_OR_GREATER
                 int bytesRead = stream.Read(buffer.Slice(totalBytesRead));
+#else
+                int bytesRead = stream.Read(arrayBuffer, totalBytesRead, buffer.Length - totalBytesRead);
+                arrayBuffer.AsSpan().Slice(totalBytesRead, bytesRead).CopyTo(buffer.Slice(totalBytesRead));
+#endif
                 if (bytesRead == 0)
                 {
                     throw new EndOfStreamException(); // End of stream
