@@ -37,7 +37,7 @@ namespace MediaPlayerTest
             framePlayer.Source = new Sn.Media.SdcbFFmpeg.MediaFileFrameStream(@"D:\CloudMusic\MV\bbbb.mp4");
             framePlayer.IsPlaying = true;
 
-            _samplePlayer.Source = new MediaFoundationSampleStream(@"D:\CloudMusic\MV\bbbb.mp4");
+            _samplePlayer.Source = new BufferedSampleStream(new MediaFoundationSampleStream(@"D:\CloudMusic\MV\bbbb.mp4"));
             _samplePlayer.IsPlaying = true;
         }
 
