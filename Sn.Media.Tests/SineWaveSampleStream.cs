@@ -28,7 +28,6 @@
         public int SampleRate => _sampleRate;
         public SampleFormat Format => _format;
 
-        public bool HasPosition => true;
         public bool HasLength => true;
         public bool CanSeek => true;
 

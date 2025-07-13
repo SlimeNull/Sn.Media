@@ -56,7 +56,7 @@ namespace MediaPlayerTest
 
             var progress = (slider.Value - slider.Minimum) / (slider.Maximum - slider.Minimum);
             framePlayer.Position = framePlayer.Duration * progress;
-            _samplePlayer.Position = _samplePlayer.Length * progress;
+            _samplePlayer.Position = _samplePlayer.Duration * progress;
         }
     }
 }

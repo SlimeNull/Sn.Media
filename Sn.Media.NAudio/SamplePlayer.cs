@@ -67,11 +67,6 @@ namespace Sn.Media.NAudio
                     throw new InvalidOperationException("No source specified");
                 }
 
-                if (!_source.HasPosition)
-                {
-                    throw new InvalidOperationException("Source has no position");
-                }
-
                 var totalSeconds = _source.Position / (double)_source.SampleRate;
                 return TimeSpan.FromSeconds(totalSeconds);
             }
@@ -98,7 +93,7 @@ namespace Sn.Media.NAudio
             }
         }
 
-        public TimeSpan Length
+        public TimeSpan Duration
         {
             get
             {

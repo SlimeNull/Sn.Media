@@ -26,8 +26,6 @@ namespace Sn.Media
 
         public int Channels { get; }
 
-        public bool HasPosition { get; }
-
         public bool HasLength { get; }
 
         public bool CanSeek { get; }
@@ -66,7 +64,6 @@ namespace Sn.Media
             Format = sampleStream.Format;
             SampleRate = sampleStream.SampleRate;
             Channels = sampleStream.Channels;
-            HasPosition = true;
             HasLength = sampleStream.HasLength;
             CanSeek = sampleStream.CanSeek;
 

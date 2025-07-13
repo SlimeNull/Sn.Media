@@ -40,8 +40,6 @@ namespace Sn.Media.SdcbFFmpeg
 
         public int Channels { get; }
 
-        public bool HasPosition => true;
-
         public bool HasLength => true;
 
         public bool CanSeek => true;

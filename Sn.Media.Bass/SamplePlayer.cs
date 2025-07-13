@@ -93,11 +93,6 @@ namespace Sn.Media.Bass
                     throw new InvalidOperationException("No source specified");
                 }
 
-                if (!_source.HasPosition)
-                {
-                    throw new InvalidOperationException("Source has no position");
-                }
-
                 var totalSeconds = _source.Position / (double)_source.SampleRate;
                 return TimeSpan.FromSeconds(totalSeconds);
             }
@@ -118,7 +113,7 @@ namespace Sn.Media.Bass
             }
         }
 
-        public TimeSpan Length
+        public TimeSpan Duration
         {
             get
             {

@@ -23,8 +23,6 @@ namespace Sn.Media.NAudio
 
         public int Channels => ((ISampleStream)_wrapper).Channels;
 
-        public bool HasPosition => ((ISampleStream)_wrapper).HasPosition;
-
         public bool CanSeek => ((ISampleStream)_wrapper).CanSeek;
 
         public long Position => ((ISampleStream)_wrapper).Position;

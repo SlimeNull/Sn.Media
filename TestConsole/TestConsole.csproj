@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -20,6 +20,7 @@
     <ProjectReference Include="..\Sn.Media.OpenCvSharp4\Sn.Media.OpenCvSharp4.csproj" />
     <ProjectReference Include="..\Sn.Media.SdcbFFmpeg\Sn.Media.SdcbFFmpeg.csproj" />
     <ProjectReference Include="..\Sn.Media.Tests\Sn.Media.Tests.csproj" />
+    <ProjectReference Include="..\Sn.Media.Windows\Sn.Media.Windows.csproj" />
   </ItemGroup>
 
 </Project>

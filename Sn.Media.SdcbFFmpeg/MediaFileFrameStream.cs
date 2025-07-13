@@ -35,8 +35,6 @@ namespace Sn.Media.SdcbFFmpeg
 
         public int FrameDataSize { get; }
 
-        public bool HasPosition => true;
-
         public bool HasDuration => true;
 
         public bool CanSeek => true;

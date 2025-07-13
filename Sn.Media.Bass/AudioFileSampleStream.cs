@@ -19,7 +19,6 @@ namespace Sn.Media.Bass
 
         public int Channels { get; }
 
-        public bool HasPosition => true;
         public bool HasLength => true;
         public bool CanSeek => true;
 

@@ -13,8 +13,10 @@ namespace Sn.Media.NAudio
 
         private readonly int _channels;
         private readonly int _bytesPerSample;
+        private readonly int _bytesPerSampleGroup;
         private readonly WaveStream? _sourceAsWaveStream;
         private readonly ArrayPool<byte> _bufferPool = ArrayPool<byte>.Create();
+        private long _position;
 
         public IWaveProvider Source { get; }
 
@@ -24,7 +26,6 @@ namespace Sn.Media.NAudio
 
         public int Channels { get; }
 
-        public bool HasPosition => _sourceAsWaveStream is { };
         public bool HasLength => _sourceAsWaveStream is { };
 
         public bool CanSeek => _sourceAsWaveStream is { CanSeek: true };
@@ -38,7 +39,7 @@ namespace Sn.Media.NAudio
                     return _sourceAsWaveStream.Position / _bytesPerSample / _channels;
                 }
 
-                throw new InvalidOperationException();
+                return _position;
             }
         }
 
@@ -59,6 +60,7 @@ namespace Sn.Media.NAudio
         {
             _channels = source.WaveFormat.Channels;
             _bytesPerSample = source.WaveFormat.BitsPerSample / 8;
+            _bytesPerSampleGroup = _bytesPerSample * _channels;
             _sourceAsWaveStream = source as WaveStream;
 
             Source = source;
@@ -83,11 +85,16 @@ namespace Sn.Media.NAudio
             }
             else
             {
-                throw new NotSupportedException();
+                throw new ArgumentException("Format of specified source is not supported");
             }
 
             SampleRate = source.WaveFormat.SampleRate;
             Channels = source.WaveFormat.Channels;
+
+            if (_sourceAsWaveStream is not null)
+            {
+                _position = _sourceAsWaveStream.Position / _bytesPerSampleGroup;
+            }
         }
 
         public void Seek(long position)
@@ -95,11 +102,12 @@ namespace Sn.Media.NAudio
             if (_sourceAsWaveStream is not null && _sourceAsWaveStream.CanSeek)
             {
                 long bytePosition = position * _channels * _bytesPerSample;
+                _position = position;
                 _sourceAsWaveStream.Position = bytePosition;
                 return;
             }
 
-            throw new InvalidOperationException();
+            throw new NotSupportedException();
         }
 
         public int Read(Span<byte> buffer)
@@ -116,6 +124,7 @@ namespace Sn.Media.NAudio
             }
 
             _bufferPool.Return(array, clearArray: false);
+            _position += bytesRead / _bytesPerSampleGroup;
             return bytesRead;
         }
 

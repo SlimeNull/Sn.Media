@@ -12,7 +12,6 @@ namespace Sn.Media
         public int SampleRate { get; }
         public int Channels { get; }
 
-        public bool HasPosition { get; }
         public bool HasLength { get; }
         public bool CanSeek { get; }
 

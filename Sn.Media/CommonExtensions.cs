@@ -99,8 +99,6 @@ namespace Sn.Media
 
             public int Channels => _source.Channels;
 
-            public bool HasPosition => _source.HasPosition;
-
             public bool HasLength => _source.HasLength;
 
             public bool CanSeek => false;
@@ -175,8 +173,6 @@ namespace Sn.Media
             public int SampleRate => _source.SampleRate;
 
             public int Channels => _source.Channels;
-
-            public bool HasPosition => _source.HasPosition;
 
             public bool HasLength => _source.HasLength;
 

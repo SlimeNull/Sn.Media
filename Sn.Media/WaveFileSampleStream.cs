@@ -7,8 +7,9 @@ namespace Sn.Media
     {
         private readonly WaveFileHeader _header;
         private readonly Stream _stream;
-        private readonly long _streamSampleStartPosition;
         private readonly int _bytesPerSampleGroup;
+        private readonly long _streamSampleStartPosition;
+        private long _position;
 
 #if NET8_0_OR_GREATER
 
@@ -39,8 +40,12 @@ namespace Sn.Media
 
             _header = header;
             _stream = stream;
-            _streamSampleStartPosition = stream.Position;
             _bytesPerSampleGroup = header.BitsPerSample / 8 * header.ChannelCount;
+
+            if (stream.CanSeek)
+            {
+                _streamSampleStartPosition = stream.Position;
+            }
         }
 
         public SampleFormat Format { get; set; }
@@ -49,13 +54,11 @@ namespace Sn.Media
 
         public int Channels { get; set; }
 
-        public bool HasPosition => _stream.CanSeek;
-
         public bool HasLength => _stream.CanSeek;
 
         public bool CanSeek => _stream.CanSeek;
 
-        public long Position => (_stream.Position - _streamSampleStartPosition) / _bytesPerSampleGroup;
+        public long Position => _position;
 
         public long Length => _header.DataChunkSize / _bytesPerSampleGroup;
 
@@ -64,18 +67,26 @@ namespace Sn.Media
 #if NET8_0_OR_GREATER
             return _stream.Read(buffer);
 #else
-            var array = _arrayPool.Rent(buffer.Length);
-            var read = _stream.Read(array, 0, buffer.Length);
-            array.AsSpan(0, buffer.Length).CopyTo(buffer);
+            var actualSizeToRead = buffer.Length / _bytesPerSampleGroup * _bytesPerSampleGroup;
+            var array = _arrayPool.Rent(actualSizeToRead);
+            var read = _stream.Read(array, 0, actualSizeToRead);
+            array.AsSpan(0, read).CopyTo(buffer);
             _arrayPool.Return(array);
 
+            _position += _bytesPerSampleGroup / read;
             return read;
 #endif
         }
 
         public void Seek(long position)
         {
+            if (!_stream.CanSeek)
+            {
+                throw new NotSupportedException();
+            }
+
             _stream.Seek(_streamSampleStartPosition + position * _bytesPerSampleGroup, SeekOrigin.Begin);
+            _position = position;
         }
 
         public static unsafe WaveFileSampleStream Create(Stream stream)
